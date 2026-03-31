@@ -1,0 +1,7 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+^extra$
+^docs$
+^_pkgdown.yml$
+^CITATION.cff$
