@@ -10,14 +10,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  message = FALSE,
-  warning = FALSE
-)
-```
+
 
 This vignette demonstrates the main workflow of the `OnlineSurr` package:
 
@@ -53,7 +46,8 @@ The package returns a fitted object of class `fitted_onlinesurr` that stores poi
 
 This section builds a minimal simulated dataset consistent with the checks inside `fit.surr()`.
 
-```{r}
+
+``` r
 set.seed(1)
 
 # Dimensions
@@ -94,6 +88,13 @@ dat <- data.frame(
 # Ensure the data are ordered by (id, time) (recommended)
 dat <- dat[order(dat$id, dat$time), ]
 head(dat)
+#>   id trt time         s         y
+#> 1  1   0    1 0.2398106 0.4499785
+#> 2  1   0    2 0.3387974 0.5209293
+#> 3  1   0    3 0.6341120 1.0634402
+#> 4  1   0    4 0.6870637 0.8692466
+#> 5  1   0    5 1.1433024 1.4113951
+#> 6  1   0    6 1.3980400 1.3448466
 ```
 
 ## Fitting the models with `fit.surr()`
@@ -106,7 +107,8 @@ head(dat)
 - `surrogate`: surrogate structure (as a formula or a string).
 - `time`: numeric time variable (unquoted).
 
-```{r eval=TRUE}
+
+``` r
 library(OnlineSurr)
 
 fit <- fit.surr(
@@ -125,7 +127,8 @@ The formulas for the fixed effects and the surrogate structures accept any tempo
 
 In particular, we provide the `lagged` function, which computes lagged values of its arguments and can be included in a model formula to account for delayed or lingering effects of a predictor over time. We also provide the `s` function, which generates a spline basis for a numeric variable and can be used to model smooth, potentially non-linear effects without having to specify the basis expansion manually.
 
-```{r eval=FALSE}
+
+``` r
 library(OnlineSurr)
 
 fit <- fit.surr(
@@ -163,19 +166,47 @@ The package provides an S3 summary method `summary.fitted_onlinesurr()`.
 - `cumulative=TRUE` reports cumulative effects up to time `t` (when implemented by the method).
 - `cumulative=FALSE` reports time-specific quantities at time `t` only.
 
-```{r eval=TRUE}
+
+``` r
 summary(fit, t = 6, cumulative = TRUE)
+#> Fitted Online Surrogate
+#> 
+#> Cummulated effects at time 6:
+#>         Estimate Std. Error t value  Pr(>|t|)   
+#> Delta    7.94053  0.08800   90.23486 0.0000e+00 ***
+#> Delta.R  1.85514  0.22958    8.08060 6.6613e-16 ***
+#> CPTE     0.76637  0.02954      -         -       
+#> 
+#> Time homogeneity test: 
+#> 
+#> Test stat.   Crit. value   p-value     
+#>    2.19913       2.51935    0.11282    
+#> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
 
 ## Plotting LPTE, CPTE, and treatment effects
 
 `plot()` dispatches to `plot.fitted_onlinesurr()`.
 
-```{r eval=TRUE}
+
+``` r
 plot(fit, type = "LPTE") # Local PTE over time
+```
+
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png)
+
+``` r
 plot(fit, type = "CPTE") # Cumulative PTE over time
+```
+
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-2.png)
+
+``` r
 plot(fit, type = "Delta") # Delta and Delta_R over time
 ```
+
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-3.png)
 
 Interpretation notes:
 
@@ -186,9 +217,19 @@ Interpretation notes:
 
 `time_homo_test()` provides a max-type test, using a Monte Carlo approximation of the null distribution.
 
-```{r eval=TRUE}
+
+``` r
 test <- time_homo_test(fit, signif.level = 0.05, N.boots = 50000)
 test
+#> $T
+#> [1] 2.199127
+#> 
+#> $T.crit
+#>     95% 
+#> 2.51428 
+#> 
+#> $p.value
+#> [1] 0.1084
 ```
 
 Returned components:
@@ -210,6 +251,44 @@ Returned components:
 
 # Session info
 
-```{r eval=TRUE}
+
+``` r
 sessionInfo()
+#> R version 4.4.1 (2024-06-14 ucrt)
+#> Platform: x86_64-w64-mingw32/x64
+#> Running under: Windows 11 x64 (build 22631)
+#> 
+#> Matrix products: default
+#> 
+#> 
+#> locale:
+#> [1] LC_COLLATE=English_United States.utf8  LC_CTYPE=English_United States.utf8    LC_MONETARY=English_United States.utf8
+#> [4] LC_NUMERIC=C                           LC_TIME=English_United States.utf8    
+#> 
+#> time zone: America/Chicago
+#> tzcode source: internal
+#> 
+#> attached base packages:
+#> [1] stats     graphics  grDevices utils     datasets  methods   base     
+#> 
+#> other attached packages:
+#> [1] OnlineSurr_0.0.0
+#> 
+#> loaded via a namespace (and not attached):
+#>  [1] gtable_0.3.6        xfun_0.50           ggplot2_4.0.1       htmlwidgets_1.6.4   devtools_2.4.5     
+#>  [6] remotes_2.5.0       processx_3.8.5      callr_3.7.6         ps_1.8.1            vctrs_0.6.5        
+#> [11] tools_4.4.1         Rdpack_2.6.2        generics_0.1.3      parallel_4.4.1      tibble_3.2.1       
+#> [16] pkgconfig_2.0.3     R.oo_1.27.0         RColorBrewer_1.1-3  S7_0.2.0            desc_1.4.3         
+#> [21] RcppParallel_5.1.10 lifecycle_1.0.4     R.cache_0.16.0      compiler_4.4.1      farver_2.1.2       
+#> [26] stringr_1.5.1       httpuv_1.6.15       htmltools_0.5.8.1   usethis_3.1.0       yaml_2.3.10        
+#> [31] later_1.4.1         pillar_1.10.1       urlchecker_1.0.1    tidyr_1.3.1         ellipsis_0.3.2     
+#> [36] R.utils_2.12.3      cachem_1.1.0        sessioninfo_1.2.2   mime_0.12           styler_1.10.3      
+#> [41] tidyselect_1.2.1    digest_0.6.37       stringi_1.8.4       dplyr_1.1.4         purrr_1.0.2        
+#> [46] labeling_0.4.3      latex2exp_0.9.6     rprojroot_2.0.4     fastmap_1.2.0       grid_4.4.1         
+#> [51] cli_3.6.3           magrittr_2.0.3      Rfast_2.1.4         pkgbuild_1.4.6      withr_3.0.2        
+#> [56] scales_1.4.0        promises_1.3.2      RcppZiggurat_0.1.6  roxygen2_7.3.3      extraDistr_1.10.0  
+#> [61] R.methodsS3_1.8.2   memoise_2.0.1       shiny_1.10.0        kDGLM_1.2.14        evaluate_1.0.3     
+#> [66] knitr_1.49          rbibutils_2.3       miniUI_0.1.1.1      profvis_0.4.0       rlang_1.1.7        
+#> [71] Rcpp_1.0.14         xtable_1.8-4        glue_1.8.0          xml2_1.3.6          pkgload_1.4.0      
+#> [76] rstudioapi_0.17.1   R6_2.5.1            fs_1.6.5
 ```

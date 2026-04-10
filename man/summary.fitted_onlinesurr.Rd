@@ -4,14 +4,14 @@
 \alias{summary.fitted_onlinesurr}
 \title{Summarize a \code{"fitted_onlinesurr"} object}
 \usage{
-\method{summary}{fitted_onlinesurr}(object, t = object$T, cummulative = T, signif.level = 0.05, ...)
+\method{summary}{fitted_onlinesurr}(object, t = object$T, cumulative = T, signif.level = 0.05, ...)
 }
 \arguments{
 \item{object}{A \code{"fitted_onlinesurr"} object.}
 
-\item{t}{Integer time index at which to evaluate treatment effects and the PTE. If \code{cummulative = TRUE}, effects are aggregated over times \code{1:t}. If \code{cummulative = FALSE}, effects are evaluated at time \code{t} only.}
+\item{t}{Integer time index at which to evaluate treatment effects and the PTE. If \code{cumulative = TRUE}, effects are aggregated over times \code{1:t}. If \code{cumulative = FALSE}, effects are evaluated at time \code{t} only.}
 
-\item{cummulative}{Logical; if \code{TRUE} (default), the report uses cumulative (up to time \code{t}) marginal and conditional treatment effects. If \code{FALSE}, the report uses the effects at time \code{t} only.}
+\item{cumulative}{Logical; if \code{TRUE} (default), the report uses cumulative (up to time \code{t}) marginal and conditional treatment effects. If \code{FALSE}, the report uses the effects at time \code{t} only.}
 
 \item{signif.level}{Numeric in \eqn{(0,1)} giving the significance level for the time-homogeneity test that is reported (e.g., via \code{time_homo_test}).}
 
@@ -34,9 +34,9 @@ fit <- fit.surr(y ~ 1,
 )
 
 # Cumulative up to time 5
-summary(fit, t = 5, cummulative = TRUE, signif.level = 0.05)
+summary(fit, t = 5, cumulative = TRUE, signif.level = 0.05)
 
 # Time-specific at time 5
-summary(fit, t = 5, cummulative = FALSE)
+summary(fit, t = 5, cumulative = FALSE)
 }
 }

@@ -1,4 +1,4 @@
-# OnlineSurr
+# OnlineSurr <img src="hex_badge.png" align="right" height="220" alt="OnlineSurr hex logo" />
 
 `OnlineSurr` is an R package for surrogate evaluation when both the primary outcome and the surrogate marker are measured longitudinally. The package implements a state-space approach based on the methodology developed in *A Causal Framework for Evaluating Jointly Longitudinal Outcomes and Surrogate Markers: A State-Space Approach*.
 
@@ -47,12 +47,15 @@ fit <- fit.surr(
   N.boots   = 500
 )
 
-summary(fit, t = fit$T, cummulative = TRUE)
+summary(fit, t = fit$T, cumulative = TRUE)
 plot(fit, type = "LPTE")
 plot(fit, type = "CPTE")
 plot(fit, type = "Delta")
 time_homo_test(fit)
 ```
+
+Go here to view a tutorial for this package: [OnlineSurr vignette](https://htmlpreview.github.io/?https://github.com/silvaneojunior/OnlineSurr/vignettes/onlinesurr-vignette.html)
+
 ## Notes and limitations
 
 At its current stage, the package is focused on the core methodology and assumes that the user supplies an appropriate surrogate specification. In practice, users should pay careful attention to:

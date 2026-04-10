@@ -18,8 +18,8 @@ print.fitted_onlinesurr <- function(x, ...) {
 #' Prints a human-readable report for an object of class \code{"fitted_onlinesurr"} returned by \code{fit.surr}. The report includes marginal and conditional treatment-effect estimates at a selected time point (or cumulatively up to that time), an estimate of the LPTE/CPTE, and a time-homogeneity test of the LPTE.
 #'
 #' @param object A \code{"fitted_onlinesurr"} object.
-#' @param t Integer time index at which to evaluate treatment effects and the PTE. If \code{cummulative = TRUE}, effects are aggregated over times \code{1:t}. If \code{cummulative = FALSE}, effects are evaluated at time \code{t} only.
-#' @param cummulative Logical; if \code{TRUE} (default), the report uses cumulative (up to time \code{t}) marginal and conditional treatment effects. If \code{FALSE}, the report uses the effects at time \code{t} only.
+#' @param t Integer time index at which to evaluate treatment effects and the PTE. If \code{cumulative = TRUE}, effects are aggregated over times \code{1:t}. If \code{cumulative = FALSE}, effects are evaluated at time \code{t} only.
+#' @param cumulative Logical; if \code{TRUE} (default), the report uses cumulative (up to time \code{t}) marginal and conditional treatment effects. If \code{FALSE}, the report uses the effects at time \code{t} only.
 #' @param signif.level Numeric in \eqn{(0,1)} giving the significance level for the time-homogeneity test that is reported (e.g., via \code{time_homo_test}).
 #' @param ... Additional arguments passed to downstream summary/print utilities (if any).
 #'
@@ -30,6 +30,8 @@ print.fitted_onlinesurr <- function(x, ...) {
 #'
 #' @export
 #'
+#' @importFrom Rfast colCumSums
+#'
 #' @examples
 #' \dontrun{
 #' fit <- fit.surr(y ~ 1,
@@ -38,22 +40,36 @@ print.fitted_onlinesurr <- function(x, ...) {
 #' )
 #'
 #' # Cumulative up to time 5
-#' summary(fit, t = 5, cummulative = TRUE, signif.level = 0.05)
+#' summary(fit, t = 5, cumulative = TRUE, signif.level = 0.05)
 #'
 #' # Time-specific at time 5
-#' summary(fit, t = 5, cummulative = FALSE)
+#' summary(fit, t = 5, cumulative = FALSE)
 #' }
-summary.fitted_onlinesurr <- function(object, t = object$T, cummulative = T, signif.level = 0.05, ...) {
+summary.fitted_onlinesurr <- function(object, t = object$T, cumulative = T, signif.level = 0.05, ...) {
   T <- object$T
   n <- object$n.fixed
 
   delta.est <- object$Marginal$point[1:T + n - T]
   delta.R.est <- object$Conditional$point[1:T + n - T]
+  delta.smp <- object$Marginal$smp[1:T + n - T, ]
+  delta.R.smp <- object$Conditional$smp[1:T + n - T, ]
 
-  if (cummulative) {
+  if (cumulative) {
     delta.est <- cumsum(delta.est)
     delta.R.est <- cumsum(delta.R.est)
+    delta.smp <- colCumSums(delta.smp)
+    delta.R.smp <- colCumSums(delta.R.smp)
   }
+
+  delta.est <- delta.est[t]
+  delta.R.est <- delta.R.est[t]
+  delta.smp <- delta.smp[t, ]
+  delta.R.smp <- delta.R.smp[t, ]
+
+
+  pte <- 1 - delta.R.est / delta.est
+  pte.smp <- 1 - delta.R.smp / delta.smp
+
 
   format.num <- function(x) {
     ifelse(abs(x) < 0.001,
@@ -62,42 +78,89 @@ summary.fitted_onlinesurr <- function(object, t = object$T, cummulative = T, sig
     )
   }
 
-  names <- c("Delta", "Delta.R", ifelse(cummulative, "CPTE", "LPTE"))
-  vals <- c(delta.est[t], delta.R.est[t], 1 - delta.R.est[t] / delta.est[t]) |>
+  names <- c(" ", "Delta", "Delta.R", ifelse(cumulative, "CPTE", "LPTE"))
+  names <- format(names, width = max(nchar(names)), justify = "l")
+
+  vals.means <- c(delta.est, delta.R.est, pte)
+  vals.sd <- c(sd(delta.smp), sd(delta.R.smp), sd(pte.smp))
+  vals.t <- (vals.means / vals.sd)
+  vals.p <- (2 * (1 - pnorm(abs(vals.t))))
+
+  status <- rep(" ", 3)
+  status[which(vals.p[-3] <= 0.1)] <- "."
+  status[which(vals.p[-3] <= 0.05)] <- "*"
+  status[which(vals.p[-3] <= 0.01)] <- "**"
+  status[which(vals.p[-3] <= 0.001)] <- "***"
+
+  vals.means <- vals.means |>
     format.num() |>
     as.character()
-  len.names <- sapply(1:3, function(x) {
-    max(nchar(names[x]), nchar(vals[x]))
+  vals.means <- c("Estimate", vals.means)
+  vals.means <- sapply(1:4, function(x) {
+    format(vals.means[x], width = max(nchar(vals.means)), justify = c("l", "l", "l", "l")[x])
   })
 
+  vals.sd <- vals.sd |>
+    format.num() |>
+    as.character()
+  vals.sd <- c("Std. Error", vals.sd)
+  vals.sd <- sapply(1:4, function(x) {
+    format(vals.sd[x], width = max(nchar(vals.sd)), justify = c("l", "l", "l", "l")[x])
+  })
+
+  vals.t <- vals.t |>
+    format.num() |>
+    as.character()
+  vals.t <- c("t value", vals.t[-3], "-")
+  vals.t <- sapply(1:4, function(x) {
+    format(vals.t[x], width = max(nchar(vals.t)), justify = c("l", "l", "l", "c")[x])
+  })
+
+  vals.p <- vals.p |>
+    format.num() |>
+    as.character()
+  vals.p <- c("Pr(>|t|)", vals.p[-3], "-")
+  vals.p <- sapply(1:4, function(x) {
+    format(vals.p[x], width = max(nchar(vals.p)), justify = c("l", "l", "l", "c")[x])
+  })
+
+  status <- c("", status)
+
   homo.test <- time_homo_test(object, signif.level)
-  names.test <- c("Test stat.", "Crit. value", "p-value")
+  names.test <- c("Test stat.", "Crit. value", "p-value", "")
   vals.test <- as.numeric(homo.test) |>
     format.num() |>
     as.character()
+
+  if (homo.test[3] <= 0.1) {
+    vals.test <- c(vals.test, ".")
+  } else if (homo.test[3] <= 0.05) {
+    vals.test <- c(vals.test, "*")
+  } else if (homo.test[3] <= 0.01) {
+    vals.test <- c(vals.test, "**")
+  } else if (homo.test[3] <= 0.001) {
+    vals.test <- c(vals.test, "***")
+  } else {
+    vals.test <- c(vals.test, " ")
+  }
+
   len.names.test <- sapply(seq_along(names.test), function(x) {
     max(nchar(names.test[x]), nchar(vals.test[x]))
   })
 
   cat(paste0(
     "Fitted Online Surrogate\n\n",
-    ifelse(cummulative, "Cummulated", "Local"), " effects at time ", t, ":\n",
-    paste(sapply(seq_along(names), function(x) {
-      format(names[x], width = len.names[x], justify = "l")
-    }), collapse = "   "), "\n",
-    paste(sapply(seq_along(names), function(x) {
-      format(vals[x], width = len.names[x], justify = "r")
-    }), collapse = "   "), "\n",
-    "---\n",
-    "Time homogeneity test: \n",
+    ifelse(cumulative, "Cummulated", "Local"), " effects at time ", t, ":\n",
+    paste0(paste(names, vals.means, vals.sd, vals.t, vals.p, status, sep = " "), collapse = "\n"), "\n\n",
+    "Time homogeneity test: \n\n",
     paste(sapply(seq_along(names.test), function(x) {
       format(names.test[x], width = len.names.test[x], justify = "l")
     }), collapse = "   "), "\n",
     paste(sapply(seq_along(names.test), function(x) {
       format(vals.test[x], width = len.names.test[x], justify = "r")
     }), collapse = "   "), "\n",
-    "Signif. level: ", signif.level, "\n",
-    "---\n"
+    "---\n",
+    "Signif. codes:  0 \xe2\x80\x98***\xe2\x80\x99 0.001 \xe2\x80\x98**\xe2\x80\x99 0.01 \xe2\x80\x98*\xe2\x80\x99 0.05 \xe2\x80\x98.\xe2\x80\x99 0.1 \xe2\x80\x98 \xe2\x80\x99 1\n\n"
   ))
 }
 
