@@ -2,6 +2,8 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^extra$
+^reproducible_paper_codes$
 ^docs$
 ^_pkgdown.yml$
+^hex_badge.png$
 ^CITATION.cff$

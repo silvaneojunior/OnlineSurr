@@ -1,10 +1,12 @@
 bibentry(
   bibtype  = "misc",
-  title    = "kDGLM: An R package for Bayesian analysis of Generalized Dynamic Linear Models",
-  author   = "Silvaneo Vieira dos Santos Junior, Mariane Branco Alves, Helio dos Santos Migon",
+  title    = "A Causal Framework for Evaluating Jointly Longitudinal Outcomes and Surrogate Markers: A State-Space Approach",
+  author   = "Silvaneo Vieira dos Santos Junior, Layla Parast",
   eprint="2403.13069",
   archivePrefix="arXiv",
   primaryClass="stat.ME",
-  year="2024",
-  textVersion='dos Santos SV Junior, Alves MB, Migon HS (2024). "kDGLM: An R package for Bayesian analysis of Generalized Dynamic Linear Models." 2403.13069.'
+  year="2026",
+  textVersion='Santos Jr. SV, Parast L (2026). "A Causal Framework for Evaluating Jointly
+Longitudinal Outcomes and Surrogate Markers: A
+State-Space Approach." 2403.13069.'
 )

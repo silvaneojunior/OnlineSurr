@@ -31,6 +31,7 @@ print.fitted_onlinesurr <- function(x, ...) {
 #' @export
 #'
 #' @importFrom Rfast colCumSums
+#' @importFrom stats sd pnorm
 #'
 #' @examples
 #' \dontrun{
