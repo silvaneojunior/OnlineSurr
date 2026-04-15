@@ -1,7 +1,7 @@
 Package: OnlineSurr
 Type: Package
 Title: Surrogate Evaluation for Jointly Longitudinal Outcome and Surrogate
-Version: 0.0.2
+Version: 0.0.3
 Authors@R: c(
         person(given="Silvaneo", family ="dos Santos Jr.", email = "silvaneojunior@utexas.edu", role = c("aut", "cre")),
         person(given="Layla", family ="Parast", email = "parast@austin.utexas.edu", role = c("aut")))

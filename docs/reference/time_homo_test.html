@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">OnlineSurr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -69,7 +69,11 @@
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Notes:</p><ul><li><p>The function assumes the first <code>T</code> time-specific treatment-effect parameters are stored contiguously at the beginning of <code>model$Marginal$point</code> and <code>model$Conditional$point</code> (and similarly for <code>smp</code>). It uses the index <code>1:(n.fixed)</code> as implemented in the code: <code>1:(T + n.fixed - T)</code>.</p></li>
+    <p>See (dos Santos Jr. and Parast 2026)
+ for the theoretical details about this test.</p>
+
+
+<p>Notes:</p><ul><li><p>The function assumes the first <code>T</code> time-specific treatment-effect parameters are stored contiguously at the beginning of <code>model$Marginal$point</code> and <code>model$Conditional$point</code> (and similarly for <code>smp</code>). It uses the index <code>1:(n.fixed)</code> as implemented in the code: <code>1:(T + n.fixed - T)</code>.</p></li>
 <li><p><code>N.boots</code> here is a Monte Carlo size for the null simulation (distinct from the bootstrap size used when fitting <code>model</code>).</p></li>
 </ul></div>
 

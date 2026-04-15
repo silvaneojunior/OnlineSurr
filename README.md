@@ -54,7 +54,9 @@ plot(fit, type = "Delta")
 time_homo_test(fit)
 ```
 
-Go here to view a tutorial for this package: [OnlineSurr vignette](https://silvaneojunior.github.io/OnlineSurr/)
+Go here to view a tutorial for this package: [OnlineSurr vignette](https://silvaneojunior.github.io/OnlineSurr/articles/vignette.html)
+
+See @santos2026causalframeworkevaluatingjointly for details about the theoretical aspects of the package.
 
 ## Notes and limitations
 
@@ -70,9 +72,10 @@ The current implementation is best viewed as a research package accompanying the
 
 If you use this repository, please cite the associated paper:
 
+
+
 ```text
-Silvaneo V. dos Santos Jr. and Layla Parast.
-A Causal Framework for Evaluating Jointly Longitudinal Outcomes and Surrogate Markers: A State-Space Approach.
+Santos Jr., S. V. dos, and Parast, L. (2026). A causal framework for evaluating jointly longitudinal outcomes and surrogate markers: A state-space approach.
 ```
 
-You may also want to cite the package repository directly once a public versioned release is available.
+

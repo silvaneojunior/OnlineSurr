@@ -42,6 +42,7 @@ var_decomp <- function(S) {
 #' @param label An optional character naming the linear predictor.
 #'
 #' @importFrom stats update.formula model.matrix
+#' @importFrom rlang is_formula
 #'
 #' @keywords internal
 formula.to.structure <- function(formula, data, label = "mu") {
@@ -53,14 +54,11 @@ formula.to.structure <- function(formula, data, label = "mu") {
   terms.mat <- c()
 
   if (length(terms) >= 1) {
-    for (i in 1:length(terms)) {
-      dlm_block_flag <- any(sapply(c("har(", "ffs(", "reg(", "pol(", "AR(", "TF(", "noise("), function(x) {
-        grepl(x, terms[i], fixed = TRUE)
-      }))
-      if (dlm_block_flag) {
-        args <- append(args, list(eval(parse(text = terms[i]), envir = data)))
+    for (term in terms) {
+      if (check_is_dlm_block(term)) {
+        args <- append(args, list(eval(parse(text = term), envir = data)))
       } else {
-        terms.mat <- append(terms.mat, terms[i])
+        terms.mat <- append(terms.mat, term)
       }
     }
   }
@@ -72,7 +70,7 @@ formula.to.structure <- function(formula, data, label = "mu") {
       X <- X[, -1, drop = FALSE]
     }
     for (j in 1:dim(X)[2]) {
-      args <- append(args, list(reg(X[, j], name = colnames(X)[j])))
+      args <- append(args, list(reg(X[, j], name = colnames(X)[j], D = 1, R1 = 900)))
     }
   }
   block_rename(do.call(block_superpos, args), label)
@@ -325,8 +323,6 @@ get.config.s <- function(x, P = 3, K = min(7, max(3, floor(log2(length(unique(x)
     if (length(knots) != K - P + 1) {
       stop(paste0("Incorrect number of knots. Expected ", K - P + 1, ", got ", length(knots), "."))
     } else if ((max(knots) < max(x)) | (min(knots) > min(x))) {
-      print((limits[2] - max(x) - tol))
-      print((limits[1] - min(x) + tol))
       stop(paste0("The range of the knots does not cover the data. knots range from ", min(knots), " to ", max(knots), ", data ranges from ", min(x) - tol, " to ", max(x) + tol, "."))
     }
   } else {
@@ -346,4 +342,44 @@ get.config.s <- function(x, P = 3, K = min(7, max(3, floor(log2(length(unique(x)
     }
   }
   return(list(x = substitute(x), knots = knots, limits = limits, P = P, K = K))
+}
+
+#' Check if a dlm block has the treatment as covariate
+#'
+#' @param formula A formula describing the model passed to the fit.surr function.
+#' @param name.G The name of the surrogate
+#'
+#' @keywords internal
+check_has_G <- function(formula, name.G, inside_dlm = FALSE) {
+  terms <- as.character(attr(terms(formula), "variables"))[-1]
+  for (term in terms) {
+    dlm_flag <- check_is_dlm_block(term)
+    if (inside_dlm | dlm_flag) {
+      if (dlm_flag) {
+        call.term <- as.call(str2lang(term))
+      } else {
+        call.term <- list(X = term)
+      }
+      for (arg in names(call.term)) {
+        if (arg == "X") {
+          if (is_formula(call.term[[arg]])) {
+            check_has_G(as.formula(call.term[[arg]]), name.G, inside_dlm = TRUE)
+          } else if (call.term[[arg]] == name.G) {
+            stop("Treatment cannot be used inside DLM blocks. If you need time dependent treatment effect or iterations, use a iteraction with the times index.")
+          }
+        }
+      }
+    }
+  }
+}
+
+#' Check if a formula term is a dlm block
+#'
+#' @param term A string.
+#'
+#' @keywords internal
+check_is_dlm_block <- function(term) {
+  any(sapply(c("har(", "ffs(", "reg(", "pol(", "AR(", "TF(", "noise("), function(x) {
+    grepl(x, term, fixed = TRUE)
+  }))
 }

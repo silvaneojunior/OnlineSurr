@@ -4,6 +4,8 @@ output:
   rmarkdown::html_vignette:
     toc: true
     toc_depth: 3
+bibliography: '`r system.file("REFERENCES.bib", package="OnlineSurr")`'
+csl: '`r system.file("apalike.csl", package="OnlineSurr")`'
 vignette: >
   %\VignetteIndexEntry{OnlineSurr: Fitting marginal/conditional models and computing LPTE/CPTE}
   %\VignetteEngine{knitr::rmarkdown}
@@ -218,6 +220,8 @@ Returned components:
 
 3. **Bootstrap size tradeoff.**  
    `fit.surr(N.boots=...)` controls stored bootstrap draws used for confidence intervals associated with the treatment effect, LPTE and CPTE; `time_homo_test(N.boots=...)` controls Monte Carlo draws for the null distribution of the time homogeneity test.
+   
+See @santos2026causalframeworkevaluatingjointly for details about the theoretical aspects of the package.
 
 # Session info
 

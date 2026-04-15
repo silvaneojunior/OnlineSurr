@@ -1,6 +1,6 @@
 source('reproducible_paper_codes/SantosJr and Parast (2026)/simulation/init.R')
 
-
+set.seed(seed)
 
 # Computing the splines basis for the surrogate
 for(surr_type in c('linear')){

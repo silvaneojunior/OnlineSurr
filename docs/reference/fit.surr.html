@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">OnlineSurr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,7 +50,8 @@
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N.boots <span class="op">=</span> <span class="fl">2000</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="fl">1</span></span>
+<span>  verbose <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  D.local <span class="op">=</span> <span class="fl">0.8</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -89,6 +90,12 @@
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>Logical scalar indicating whether to print progress information during model fitting. If <code>TRUE</code>, progress updates are shown; if <code>FALSE</code>, no progress output is produced.</p></dd>
 
+
+<dt id="arg-d-local">D.local<a class="anchor" aria-label="anchor" href="#arg-d-local"></a></dt>
+<dd><p>Numeric, a number between 0 and 1 indicating the discount factor to be used for the random effect block. This factor controls how smooth the random effect evolve over time. A discount factor of 1 means that the random effects do not change over time, so that each individual has its own local level, but that level is the same for all times. A discount factor of 0 is not acceptable (the kDGLM package will replace it by 1), but values closer to 0 imply in a more flexible dynamic. See (West and Harrison 1997)
+ or the appendix in (dos Santos Jr. and Parast 2026)
+ for instructions on how to specify the discount factor.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -101,6 +108,10 @@
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The implementation follows a two-model decomposition used for estimating longitudinal treatment effects and surrogate-adjusted (residual) treatment effects in a state-space framework.</p>
+<p>See (dos Santos Jr. and Parast 2026)
+ for details on the methodology.</p>
+<p>See (West and Harrison 1997)
+ for best practices on model specification in the state-space model setting.</p>
 
 <p><strong>Data requirements.</strong> The data must have at most one row per subject-time pair; time must be numeric and equally spaced (or omitted, in which case an index is created). Treatment and subject identifiers are coerced to factors with sorted levels.</p>
 <p><strong>Model structure.</strong> The marginal model includes treatment-by-time fixed effects and a subject-specific random-walk component to capture within-subject correlation. The conditional model adds the user-specified surrogate structure to the design, and checks that treatment is not a linear combination of the surrogate design (rank check).</p>

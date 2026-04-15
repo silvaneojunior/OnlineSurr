@@ -12,7 +12,8 @@ fit.surr(
   data = NULL,
   time = NULL,
   N.boots = 2000,
-  verbose = 1
+  verbose = 1,
+  D.local = 0.8
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ fit.surr(
 \item{N.boots}{Integer number of subject-level bootstrap replicates. Each replicate resamples subjects with replacement and recombines subject-specific sufficient quantities to form bootstrap draws of the fixed effects.}
 
 \item{verbose}{Logical scalar indicating whether to print progress information during model fitting. If \code{TRUE}, progress updates are shown; if \code{FALSE}, no progress output is produced.}
+
+\item{D.local}{Numeric, a number between 0 and 1 indicating the discount factor to be used for the random effect block. This factor controls how smooth the random effect evolve over time. A discount factor of 1 means that the random effects do not change over time, so that each individual has its own local level, but that level is the same for all times. A discount factor of 0 is not acceptable (the kDGLM package will replace it by 1), but values closer to 0 imply in a more flexible dynamic. See \insertCite{West-DLM}{OnlineSurr} or the appendix in \insertCite{santos2026causalframeworkevaluatingjointly}{OnlineSurr} for instructions on how to specify the discount factor.}
 }
 \value{
 An object of class \code{"fitted_onlinesurr"}: a named list with elements \code{$Marginal} and \code{$Conditional}. Each of these contains:
@@ -50,6 +53,10 @@ Fits two Gaussian state-space models (Dynamic Linear Models) to jointly longitud
 }
 \details{
 The implementation follows a two-model decomposition used for estimating longitudinal treatment effects and surrogate-adjusted (residual) treatment effects in a state-space framework.
+
+See \insertCite{santos2026causalframeworkevaluatingjointly}{OnlineSurr} for details on the methodology.
+
+See \insertCite{West-DLM}{OnlineSurr} for best practices on model specification in the state-space model setting.
 
 
 \strong{Data requirements.} The data must have at most one row per subject-time pair; time must be numeric and equally spaced (or omitted, in which case an index is created). Treatment and subject identifiers are coerced to factors with sorted levels.

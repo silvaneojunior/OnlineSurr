@@ -44,6 +44,9 @@ A named list with:
 
 ## Details
 
+See (dos Santos Jr. and Parast 2026) for the theoretical details about
+this test.
+
 Notes:
 
 - The function assumes the first `T` time-specific treatment-effect

@@ -1,12 +1,11 @@
 bibentry(
   bibtype  = "misc",
   title    = "A Causal Framework for Evaluating Jointly Longitudinal Outcomes and Surrogate Markers: A State-Space Approach",
-  author   = "Silvaneo Vieira dos Santos Junior, Layla Parast",
-  eprint="2403.13069",
+  author   = "Silvaneo V. dos Santos Jr. and Layla Parast",
+  eprint="2604.12882",
   archivePrefix="arXiv",
   primaryClass="stat.ME",
+  rl="https://arxiv.org/abs/2604.12882",
   year="2026",
-  textVersion='Santos Jr. SV, Parast L (2026). "A Causal Framework for Evaluating Jointly
-Longitudinal Outcomes and Surrogate Markers: A
-State-Space Approach." 2403.13069.'
+  textVersion='Santos Jr. SV, Parast L (2026). "A Causal Framework for Evaluating Jointly Longitudinal Outcomes and Surrogate Markers: A State-Space Approach." 2604.12882.'
 )

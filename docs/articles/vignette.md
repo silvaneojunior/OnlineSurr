@@ -198,14 +198,17 @@ summary(fit, t = 6, cumulative = TRUE)
 #> Fitted Online Surrogate
 #> 
 #> Cummulated effects at time 6:
-#> Delta      Delta.R    CPTE    
-#>  7.94053    1.85514    0.76637
-#> ---
+#>         Estimate Std. Error t value   Pr(>|t|)   
+#> Delta    9.01931  0.05600   161.06739 0.0000e+00 ***
+#> Delta.R  2.47893  0.41384     5.99008 2.0973e-09 ***
+#> CPTE     0.72515  0.04604       -         -       
+#> 
 #> Time homogeneity test: 
-#> Test stat.   Crit. value   p-value 
-#>    2.19913       2.51935    0.11282
-#> Signif. level: 0.05
+#> 
+#> Test stat.   Crit. value   p-value     
+#>    1.12582       2.45246    0.61942    
 #> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
 
 ### Plotting LPTE, CPTE, and treatment effects
@@ -248,14 +251,14 @@ distribution.
 test <- time_homo_test(fit, signif.level = 0.05, N.boots = 50000)
 test
 #> $T
-#> [1] 2.199127
+#> [1] 1.125824
 #> 
 #> $T.crit
-#>     95% 
-#> 2.51428 
+#>      95% 
+#> 2.449603 
 #> 
 #> $p.value
-#> [1] 0.1084
+#> [1] 0.61756
 ```
 
 Returned components:
@@ -280,6 +283,9 @@ Returned components:
     confidence intervals associated with the treatment effect, LPTE and
     CPTE; `time_homo_test(N.boots=...)` controls Monte Carlo draws for
     the null distribution of the time homogeneity test.
+
+See Santos Jr. and Parast (2026) for details about the theoretical
+aspects of the package.
 
 ## Session info
 
@@ -306,7 +312,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] OnlineSurr_0.0.0
+#> [1] OnlineSurr_0.0.2
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] sass_0.4.10         generics_0.1.4      tidyr_1.3.2        
@@ -329,3 +335,7 @@ sessionInfo()
 #> [52] farver_2.1.2        htmltools_0.5.8.1   rmarkdown_2.31     
 #> [55] labeling_0.4.3      compiler_4.5.1      S7_0.2.1
 ```
+
+Santos Jr., S. V. dos, and Parast, L. (2026). [A causal framework for
+evaluating jointly longitudinal outcomes and surrogate markers: A
+state-space approach](https://arxiv.org/abs/2604.12882).

@@ -9,20 +9,26 @@ library(dplyr)
 library(tidyr)
 library(rlang)
 
+attr(terms(~S:G),'variables')
+attr(terms(~pol(X=~G)),'variables')
 
 devtools::load_all('.')
 
 sd=0.01
 N=100
-T=20
+T=10
 data=data.frame(id=rep(1:N,each=T),time=rep(1:T,N),
                 Y=rnorm(N*T,0,sd),S=rnorm(N*T),X=rep(rnorm(N),each=T),
                 G=rep(sample(1:2,N,replace=TRUE),each=T) %>% as.factor)
 
-out=fit.surr(Y~X,surrogate=~pol(X=~S:G,order=2),treat=G,id=id,
-             data=data)
+data$S=data$S+(0.9*(as.numeric(data$G)-1))
+data$Y=data$Y+2*(0.1*(as.numeric(data$G)-1))+2*data$S
+
 
 devtools::load_all('.')
+
+out=fit.surr(Y~1,surrogate=~S,treat=G,id=id,time=time,
+             data=data)
 summary(out)
 plot(out)
 plot(out,type='CPTE')

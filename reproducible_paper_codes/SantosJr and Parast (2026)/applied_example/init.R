@@ -10,6 +10,7 @@ path='reproducible_paper_codes/SantosJr and Parast (2026)/applied_example/'
 local_path=function(file){
   paste0(path,'functions.R')
 }
+seed=130301998
 
 # ------------------------------------------------------------------------------
 #### Loading fonts ####

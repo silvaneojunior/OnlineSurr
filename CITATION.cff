@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
-- family-names: "Vieira dos Santos"
+- family-names: "Vieira dos Santos Jr."
   given-names: "Silvaneo "
   name-suffix: "Junior"
 - family-names: "Parast"
@@ -11,11 +11,11 @@ url: "https://github.com/silvaneojunior/OnlineSurr"
 preferred-citation:
   type: article
   authors:
-- family-names: "Vieira dos Santos"
+- family-names: "Vieira dos Santos Jr."
   given-names: "Silvaneo "
   name-suffix: "Junior"
 - family-names: "Parast"
   given-names: "Layla"
-  doi: "10.48550/arXiv.2403.13069"
+  doi: "10.48550/arXiv.2604.12882"
   title: "A Causal Framework for Evaluating Jointly Longitudinal Outcomes and Surrogate Markers: A State-Space Approach"
   year: 2026

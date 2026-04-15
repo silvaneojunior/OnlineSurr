@@ -4,6 +4,10 @@
 #'
 #' The implementation follows a two-model decomposition used for estimating longitudinal treatment effects and surrogate-adjusted (residual) treatment effects in a state-space framework.
 #'
+#' See \insertCite{santos2026causalframeworkevaluatingjointly}{OnlineSurr} for details on the methodology.
+#'
+#' See \insertCite{West-DLM}{OnlineSurr} for best practices on model specification in the state-space model setting.
+#'
 #' @param formula An object of class \code{formula} describing the fixed-effects mean structure for the primary outcome. The left-hand side must be the outcome variable. Internally, the right-hand side is augmented to include treatment-by-time fixed effects.
 #' @param id A variable (unquoted) identifying subjects. Each subject must have at most one measurement per \code{time} value.
 #' @param surrogate A formula describing the surrogate structure to be included in the conditional model. May be provided either as a \code{formula} (e.g., \code{~ s1 + s2}) or as a string that can be coerced to a formula.
@@ -12,6 +16,7 @@
 #' @param time Optional variable (unquoted) giving the measurement time index. Must be numeric and equally spaced across observed time points. If \code{NULL}, an equally spaced within-subject index is created in the current row order (with a warning).
 #' @param N.boots Integer number of subject-level bootstrap replicates. Each replicate resamples subjects with replacement and recombines subject-specific sufficient quantities to form bootstrap draws of the fixed effects.
 #' @param verbose Logical scalar indicating whether to print progress information during model fitting. If \code{TRUE}, progress updates are shown; if \code{FALSE}, no progress output is produced.
+#' @param D.local Numeric, a number between 0 and 1 indicating the discount factor to be used for the random effect block. This factor controls how smooth the random effect evolve over time. A discount factor of 1 means that the random effects do not change over time, so that each individual has its own local level, but that level is the same for all times. A discount factor of 0 is not acceptable (the kDGLM package will replace it by 1), but values closer to 0 imply in a more flexible dynamic. See \insertCite{West-DLM}{OnlineSurr} or the appendix in \insertCite{santos2026causalframeworkevaluatingjointly}{OnlineSurr} for instructions on how to specify the discount factor.
 #'
 #' @return An object of class \code{"fitted_onlinesurr"}: a named list with elements \code{$Marginal} and \code{$Conditional}. Each of these contains:
 #'   \itemize{
@@ -58,7 +63,7 @@
 #' @import rlang
 #' @importFrom stats update.formula model.matrix as.formula model.frame na.pass var terms
 #' @export
-fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.boots = 2000, verbose = 1) {
+fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.boots = 2000, verbose = 1, D.local = 0.8) {
   family <- Normal
 
   # Possible errors:
@@ -85,15 +90,12 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
   }
   if (name.G == "") {
     stop("Argument 'treat' is missing.")
-  } else {
-    if (is.null(data[[name.G]])) {
-      stop("Invalid 'treat' argument.")
-    } else {
-      if (any(is.na(data[[name.G]]))) {
-        stop("Cannot have NAs as treatment.")
-      }
-    }
+  } else if (is.null(data[[name.G]])) {
+    stop("Invalid 'treat' argument.")
+  } else if (any(is.na(data[[name.G]]))) {
+    stop("Cannot have NAs as treatment.")
   }
+
   data <- data %>%
     mutate(
       !!name.id := factor(!!sym(name.id), levels = sort(unique(!!sym(name.id)))),
@@ -152,15 +154,22 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
 
   Y.mat <- (data %>% select(name.Y, name.id, name.T) %>%
     pivot_wider(names_from = name.id, values_from = name.Y))[, -1]
+  treat.list <- (data %>% group_by(!!sym(name.id)) %>%
+    summarize(treat = (!!sym(name.G))[1]))$treat
+  control.name <- (unique(treat.list)[1])
+  treat.name <- (unique(treat.list)[2])
+  treat.list <- (treat.list == treat.name)
 
   T <- dim(Y.mat)[1]
   N <- dim(Y.mat)[2]
   pat.names <- names(Y.mat)
 
-  random.base <- polynomial_block(mu = 1, order = 1, D = 0.8)
+  random.base <- polynomial_block(mu = 1, order = 1, D = D.local, R1 = 900)
   random.effects <- random.base * N
 
   pred.names <- random.effects$pred.names
+
+  check_has_G(formula, name.G)
 
   formula <- update_s_in_formula(formula, data = data)
   formula <- update.formula(formula, eval(paste0(". ~ . + ", name.G, "*", name.T, "  - ", name.G, " -1")))
@@ -172,14 +181,17 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
   if (!is_formula(surrogate)) {
     surrogate <- as.formula(paste0("~", surrogate))
   }
+  check_has_G(surrogate, name.G)
   surrogate <- update_s_in_formula(surrogate, data = data)
   surrogate <- update.formula(surrogate, eval(paste0("~ . - 1")))
   surrogate.effects <- list()
+
   surrogate.effects[[1]] <- formula.to.structure(surrogate, data %>% filter(!!sym(name.id) == pat.names[1]), pred.names[1])
 
 
   surrogate.base <- surrogate.effects[[1]]
   surrogate.base$FF <- array(surrogate.base$FF, c(dim(surrogate.base$FF)[c(1, 3)], N)) %>% aperm(c(1, 3, 2))
+
   colnames(surrogate.base$FF) <- pred.names
   surrogate.base$FF.labs <- matrix(surrogate.base$FF.labs, dim(surrogate.base$FF.labs)[1], N)
   surrogate.base$k <- N
@@ -194,8 +206,8 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
     surrogate.base$FF[, i, ] <- surrogate.effects[[i]]$FF
   }
 
-  test.F <- aperm(surrogate.base$FF, c(1, 3, 2))
-  dim(test.F) <- c(dim(test.F)[1] * dim(test.F)[2], dim(test.F)[3])
+  test.F <- surrogate.base$FF
+  dim(test.F) <- c(dim(test.F)[1], dim(test.F)[3] * dim(test.F)[2])
   test.F <- cbind(t(test.F), 1)
   test.G <- (data %>% filter(!!sym(name.T) == (!!sym(name.T))[1]))[[name.G]] %>% as.numeric()
 
@@ -224,6 +236,8 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
     args$structure <- structure
     model <- do.call(fit_model, args)
     W.est <- model$W
+    R1.est.control <- var(model$mt[(1:N)[!treat.list], T])
+    R1.est.treat <- var(model$mt[(1:N)[treat.list], T])
 
 
     mt <- matrix(NA, structure$n - N + 1, N)
@@ -245,6 +259,11 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
       idx <- -((1:N)[-i])
       structure.cur$D[, , ] <- 0
       structure.cur$H[, , ] <- W.est[idx, idx, ]
+      structure.cur$R1[1, 1] <- if (treat.list[i]) {
+        R1.est.treat
+      } else {
+        R1.est.control
+      }
       structure.cur$R1[-1, -1] <- structure.cur$R1[-1, -1] * N
       args$structure <- structure.cur
       model.cur <- do.call(fit_model, args)
@@ -264,6 +283,21 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
     mt.smp <- matrix(NA, structure$n - N, N.boots)
     rownames(mt.smp) <- row.names(model.cur$mt)[-1]
     start <- Sys.time()
+
+    boots.idx <- 1:N
+
+    mt.remix <- mt[, boots.idx, drop = FALSE]
+    St.remix <- St[, , boots.idx, drop = FALSE]
+
+    vals.diag <- ifelse(St.remix[1, 1, ] == 0, 1, St.remix[1, 1, ])
+    A_11 <- rowSums(St.remix[-1, -1, ], dims = 2)
+    A_12 <- St.remix[1, -1, ]
+    S_11 <- A_11 - tcrossprod(sweep(A_12, 2, vals.diag, FUN = "/"), A_12)
+
+    a_1 <- rowSums(mt.remix[-1, ])
+    a_2 <- mt.remix[1, ] / vals.diag
+
+    point.est <- solve(S_11, a_1 - A_12 %*% a_2)
 
     for (i in 1:N.boots) {
       boots.idx <- boots.idx.mat[, i]
@@ -289,7 +323,87 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
       }
     }
 
-    models[[ifelse(marg, "Marginal", "Conditional")]] <- list(point = model$mt[-(1:N), T], smp = mt.smp)
+    if (marg) {
+      treat.effect <- rep(NA, T)
+      treat.effect.smp <- matrix(NA, N.boots, T)
+      theta <- point.est
+      theta.smp <- mt.smp
+      vals.control <- model$FF[-(1:N), !treat.list, , drop = FALSE]
+      vals.treat <- model$FF[-(1:N), treat.list, , drop = FALSE]
+      for (t in 1:T) {
+        treat.effect[t] <- mean(t(vals.treat[, , t]) %*% theta) -
+          mean(t(vals.control[, , t]) %*% theta)
+        treat.effect.smp[, t] <- colMeans(t(vals.treat[, , t]) %*% theta.smp) -
+          colMeans(t(vals.control[, , t]) %*% theta.smp)
+      }
+    } else {
+      N.control <- 2 * sum(!treat.list)
+      data.control <- rbind(
+        data %>%
+          filter(!!sym(name.G) == control.name),
+        data %>%
+          filter(!!sym(name.G) == control.name) %>%
+          mutate(!!sym(name.G) := treat.name)
+      )
+      char.len <- floor(log10(N.control)) + 1
+      pred.control <- paste0("mu.", formatC(1:N.control, width = char.len, flag = "0"))
+      data.control[[name.id]] <- rep(paste0("mu.", formatC(1:N.control, width = char.len, flag = "0")), each = T)
+      data.control[[name.id]] <- factor(data.control[[name.id]], levels = unique(data.control[[name.id]]))
+      pat.names.control <- levels(data.control[[name.id]])
+      treat.list.control <- (data.control %>% group_by(!!sym(name.id)) %>%
+        summarize(treat = (!!sym(name.G))[1]))$treat
+      treat.list.control <- (treat.list.control == treat.name)
+
+      fixed.effects.control <- list()
+      fixed.effects.control[[1]] <- formula.to.structure(formula, data.control %>% filter(!!sym(name.id) == pat.names.control[1]), label = pred.control[1])
+
+      structure.base.control <- fixed.effects.control[[1]]
+      structure.base.control$FF <- array(structure.base.control$FF, c(dim(structure.base.control$FF)[c(1, 3)], N.control)) %>% aperm(c(1, 3, 2))
+
+
+      colnames(structure.base.control$FF) <- pred.control
+      structure.base.control$FF.labs <- matrix(structure.base.control$FF.labs, dim(structure.base.control$FF.labs)[1], N.control)
+      structure.base.control$k <- N.control
+      structure.base.control$pred.names <- pred.control
+
+      surrogate.effects.control <- list()
+      surrogate.effects.control[[1]] <- formula.to.structure(surrogate, data.control %>% filter(!!sym(name.id) == pat.names.control[1]), pred.control[1])
+
+      surrogate.base.control <- surrogate.effects.control[[1]]
+      surrogate.base.control$FF <- array(surrogate.base.control$FF, c(dim(surrogate.base.control$FF)[c(1, 3)], N.control)) %>% aperm(c(1, 3, 2))
+
+      colnames(surrogate.base.control$FF) <- pred.control
+      surrogate.base.control$FF.labs <- matrix(surrogate.base.control$FF.labs, dim(surrogate.base.control$FF.labs)[1], N.control)
+      surrogate.base.control$k <- N.control
+      surrogate.base.control$pred.names <- pred.control
+
+      for (i in 2:N.control) {
+        fixed.effects.control[[i]] <- formula.to.structure(formula, data.control %>% filter(!!sym(name.id) == pat.names.control[i]), label = pred.control[i])
+        surrogate.effects.control[[i]] <- formula.to.structure(surrogate, data.control %>% filter(!!sym(name.id) == pat.names.control[i]), label = pred.control[i])
+
+        structure.base.control$FF[, i, ] <- fixed.effects.control[[i]]$FF
+        surrogate.base.control$FF[, i, ] <- surrogate.effects.control[[i]]$FF
+      }
+      structure.control <- structure.base.control + surrogate.base.control
+
+      treat.effect <- rep(NA, T)
+      treat.effect.smp <- matrix(NA, N.boots, T)
+      theta <- point.est
+      theta.smp <- mt.smp
+      vals.control <- structure.control$FF[, !treat.list.control, , drop = FALSE]
+      vals.treat <- structure.control$FF[, treat.list.control, , drop = FALSE]
+
+      for (t in 1:T) {
+        treat.effect[t] <- mean(t(vals.treat[, , t]) %*% theta) -
+          mean(t(vals.control[, , t]) %*% theta)
+        treat.effect.smp[, t] <- colMeans(t(vals.treat[, , t]) %*% theta.smp) -
+          colMeans(t(vals.control[, , t]) %*% theta.smp)
+      }
+    }
+
+
+    # models[[ifelse(marg, "Marginal", "Conditional")]] <- list(point = model$mt[-(1:N), T], smp = mt.smp)
+    models[[ifelse(marg, "Marginal", "Conditional")]] <- list(point = treat.effect, smp = t(treat.effect.smp))
   }
 
   models$marg
@@ -307,6 +421,8 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
 #' Test time-homogeneity of the PTE
 #'
 #' Tests the null hypothesis that the LPTE is constant over time. The test is based on the difference between the conditional and marginal treatment-effect trajectories implied by a fitted \code{"fitted_onlinesurr"} object, standardized by an estimated covariance, and uses a max-type statistic to control the family wise error across time points.
+#'
+#' See \insertCite{santos2026causalframeworkevaluatingjointly}{OnlineSurr} for the theoretical details about this test.
 #'
 #' @param model A fitted object of class \code{"fitted_onlinesurr"}, typically returned by \code{fit.surr}. Must contain \code{$T}, \code{$n.fixed}, and the elements \code{$Marginal} and \code{$Conditional} with \code{point} and \code{smp} components.
 #' @param signif.level Numeric in (0,1) giving the test significance level used to form the critical value from the bootstrap distribution. Default is \code{0.05}.
@@ -345,11 +461,11 @@ time_homo_test <- function(model, signif.level = 0.05, N.boots = 50000) {
   T <- model$T
   n <- model$n.fixed
 
-  delta.est <- model$Marginal$point[1:T + n - T]
-  delta.R.est <- model$Conditional$point[1:T + n - T]
+  delta.est <- model$Marginal$point
+  delta.R.est <- model$Conditional$point
 
-  delta.smp <- t(model$Marginal$smp[1:T + n - T, ])
-  delta.R.smp <- t(model$Conditional$smp[1:T + n - T, ])
+  delta.smp <- t(model$Marginal$smp)
+  delta.R.smp <- t(model$Conditional$smp)
 
   pte <- 1 - sum(delta.R.est) / sum(delta.est)
   pte.smp <- 1 - colSums(delta.R.smp) / colSums(delta.smp)

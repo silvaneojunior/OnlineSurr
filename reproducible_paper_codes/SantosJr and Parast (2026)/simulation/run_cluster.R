@@ -16,7 +16,8 @@ prepare_parallel=function(file,batch.idx,batch.size){
 
 
 set.seed(13031998)
-# For the paper, we used n.cores=20
+# To get the exact same results as the paper, it is necessary to use the exact same seeds, which depend on the number of cores used.
+# For the paper, we used n.cores=20.
 seeds=round(runif(n.cores)*1000000)
 
 clust=makeCluster(n.cores)

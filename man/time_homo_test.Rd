@@ -25,6 +25,10 @@ A named list with:
 Tests the null hypothesis that the LPTE is constant over time. The test is based on the difference between the conditional and marginal treatment-effect trajectories implied by a fitted \code{"fitted_onlinesurr"} object, standardized by an estimated covariance, and uses a max-type statistic to control the family wise error across time points.
 }
 \details{
+See \insertCite{santos2026causalframeworkevaluatingjointly}{OnlineSurr} for the theoretical details about this test.
+
+
+
 Notes:
 \itemize{
   \item The function assumes the first \code{T} time-specific treatment-effect parameters are stored contiguously at the beginning of \code{model$Marginal$point} and \code{model$Conditional$point} (and similarly for \code{smp}). It uses the index \code{1:(n.fixed)} as implemented in the code: \code{1:(T + n.fixed - T)}.

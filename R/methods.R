@@ -50,10 +50,10 @@ summary.fitted_onlinesurr <- function(object, t = object$T, cumulative = T, sign
   T <- object$T
   n <- object$n.fixed
 
-  delta.est <- object$Marginal$point[1:T + n - T]
-  delta.R.est <- object$Conditional$point[1:T + n - T]
-  delta.smp <- object$Marginal$smp[1:T + n - T, ]
-  delta.R.smp <- object$Conditional$smp[1:T + n - T, ]
+  delta.est <- object$Marginal$point
+  delta.R.est <- object$Conditional$point
+  delta.smp <- object$Marginal$smp
+  delta.R.smp <- object$Conditional$smp
 
   if (cumulative) {
     delta.est <- cumsum(delta.est)
@@ -83,7 +83,7 @@ summary.fitted_onlinesurr <- function(object, t = object$T, cumulative = T, sign
   names <- format(names, width = max(nchar(names)), justify = "l")
 
   vals.means <- c(delta.est, delta.R.est, pte)
-  vals.sd <- c(sd(delta.smp), sd(delta.R.smp), sd(pte.smp))
+  vals.sd <- c(sd(delta.smp), sd(delta.R.smp), sd(pte.smp, na.rm = TRUE))
   vals.t <- (vals.means / vals.sd)
   vals.p <- (2 * (1 - pnorm(abs(vals.t))))
 
@@ -213,11 +213,11 @@ plot.fitted_onlinesurr <- function(x, type = "LPTE", conf.level = 0.95, one.side
   T <- x$T
   n <- x$n.fixed
 
-  delta.est <- x$Marginal$point[1:T + n - T]
-  delta.R.est <- x$Conditional$point[1:T + n - T]
+  delta.est <- x$Marginal$point
+  delta.R.est <- x$Conditional$point
 
-  delta.smp <- x$Marginal$smp[1:T + n - T, ]
-  delta.R.smp <- x$Conditional$smp[1:T + n - T, ]
+  delta.smp <- x$Marginal$smp
+  delta.R.smp <- x$Conditional$smp
 
   if (type == "lpte") {
     pte <- 1 - delta.R.est / delta.est
