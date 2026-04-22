@@ -72,14 +72,20 @@ intervals computed from the bootstrap sample matrices stored in
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
 fit <- fit.surr(y ~ 1,
-  id = id, surrogate = ~ s1 + s2, treat = trt,
-  data = dat, time = time, N.boots = 2000
+  id = id,
+  surrogate = ~s,
+  treat = trt,
+  data = sim_onlinesurr, # This dataset is included in the OnlineSurr package
+  time = time,
+  verbose = 0,
+  N.boots = 500 # Generally, this value would be too small.
+  # Remember to increase it for your dataset.
 )
 
 plot(fit, type = "LPTE")
+
 plot(fit, type = "CPTE", conf.level = 0.90, one.sided = FALSE)
+
 plot(fit, type = "Delta")
-} # }
 ```

@@ -35,6 +35,7 @@ plot(out,type='CPTE')
 plot(out,type='delta')
 
 
+devtools::install_local('.',force=TRUE,upgrade = 'never')
 usethis::use_gpl3_license()
 styler::style_pkg()
 devtools::document()
@@ -48,28 +49,3 @@ pkgdown::build_site_github_pages()
 pkgdown::build_home()
 devtools::build_manual()
 tools::Rd2pdf(".", output = "manual.pdf", clean = FALSE)
-
-devtools::install_local('.',force=TRUE)
-
-
-ggplot(dat)+
-  geom_point(aes(x=time,y=y,col=trt,group=id))+
-  theme_bw()
-
-
-f=function(x,lag){
-  sapply(1:lag,function(lag){lagged(x,lag)})
-}
-
-lm(Y~s(S,K=10),data=data) %>% summary
-
-
-
-
-
-f <- Y ~ s(S, K = 10):G
-update_s_in_formula(f,data=data)
-
-
-rd
-rmarkdown::render("vignettes/onlinesurr-vignette.Rmd")

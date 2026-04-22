@@ -25,7 +25,7 @@ A named list with:
 Tests the null hypothesis that the LPTE is constant over time. The test is based on the difference between the conditional and marginal treatment-effect trajectories implied by a fitted \code{"fitted_onlinesurr"} object, standardized by an estimated covariance, and uses a max-type statistic to control the family wise error across time points.
 }
 \details{
-See \insertCite{santos2026causalframeworkevaluatingjointly}{OnlineSurr} for the theoretical details about this test.
+See \insertCite{santos2026causalframeworkevaluatingjointly;textual}{OnlineSurr} for the theoretical details about this test.
 
 
 
@@ -36,12 +36,20 @@ Notes:
 }
 }
 \examples{
-\dontrun{
 fit <- fit.surr(y ~ 1,
-  id = id, surrogate = ~ s1 + s2, treat = trt,
-  data = dat, time = time, N.boots = 2000
+  id = id,
+  surrogate = ~s,
+  treat = trt,
+  data = sim_onlinesurr, # This dataset is included in the OnlineSurr package
+  time = time,
+  verbose = 0,
+  N.boots = 500 # Generally, this value would be too small.
+  # Remember to increase it for your dataset.
 )
 
-time_homo_test(fit, signif.level = 0.05, N.boots = 50000)
+time_homo_test(fit, signif.level = 0.05, N.boots = 500)
+
 }
+\references{
+\insertAllCited{}
 }

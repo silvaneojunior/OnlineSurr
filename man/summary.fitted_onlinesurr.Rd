@@ -4,7 +4,7 @@
 \alias{summary.fitted_onlinesurr}
 \title{Summarize a \code{"fitted_onlinesurr"} object}
 \usage{
-\method{summary}{fitted_onlinesurr}(object, t = object$T, cumulative = T, signif.level = 0.05, ...)
+\method{summary}{fitted_onlinesurr}(object, t = object$T, cumulative = TRUE, signif.level = 0.05, ...)
 }
 \arguments{
 \item{object}{A \code{"fitted_onlinesurr"} object.}
@@ -27,10 +27,16 @@ Prints a human-readable report for an object of class \code{"fitted_onlinesurr"}
 The \code{"fitted_onlinesurr"} object stores point estimates and bootstrap samples for marginal and surrogate-adjusted (conditional) models in \code{object$Marginal} and \code{object$Conditional}.
 }
 \examples{
-\dontrun{
+
 fit <- fit.surr(y ~ 1,
-  id = id, surrogate = ~ s1 + s2, treat = trt,
-  data = dat, time = time, N.boots = 2000
+  id = id,
+  surrogate = ~s,
+  treat = trt,
+  data = sim_onlinesurr, # This dataset is included in the OnlineSurr package
+  time = time,
+  verbose = 0,
+  N.boots = 500 # Generally, this value would be too small.
+  # Remember to increase it for your dataset.
 )
 
 # Cumulative up to time 5
@@ -38,5 +44,4 @@ summary(fit, t = 5, cumulative = TRUE, signif.level = 0.05)
 
 # Time-specific at time 5
 summary(fit, t = 5, cumulative = FALSE)
-}
 }

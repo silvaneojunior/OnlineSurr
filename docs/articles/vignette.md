@@ -52,62 +52,6 @@ measurement. Key requirements enforced by the code:
   tests the hypothesis that the PTE is constant over time (implemented
   via a max-type statistic and Monte Carlo approximation of the null).
 
-## A complete worked example (simulated data)
-
-This section builds a minimal simulated dataset consistent with the
-checks inside
-[`fit.surr()`](https://silvaneojunior.github.io/OnlineSurr/reference/fit.surr.md).
-
-``` r
-set.seed(1)
-
-# Dimensions
-N <- 100 # subjects
-T <- 6 # time points
-times <- seq_len(T) # numeric, equally spaced
-
-# Subject IDs and treatment assignment (two levels)
-id <- rep(seq_len(N), each = T)
-trt <- rep(rbinom(N, 1, 0.5), each = T) # 0/1
-
-time <- rep(times, times = N)
-
-# Simulate surrogate(s) and outcome
-# Surrogate is affected by treatment and time
-s <-
-  0.2 * time + # Trend
-  (0.2 + 0.4 * time) * trt + # Treatment effect
-  rnorm(N * T, sd = 0.1) # Noise
-
-
-# Outcome depends on treatment effect, time trend, surrogate, and noise
-y <-
-  0.2 + # intercept
-  0.1 * time + # Trend
-  (0.2 + 0.1 * time) * trt + # (direct) treatment effect
-  0.6 * s + # Surrogate effect
-  rnorm(N * T, sd = 0.1) # Noise
-
-dat <- data.frame(
-  id = id,
-  trt = trt,
-  time = time,
-  s = s,
-  y = y
-)
-
-# Ensure the data are ordered by (id, time) (recommended)
-dat <- dat[order(dat$id, dat$time), ]
-head(dat)
-#>   id trt time         s         y
-#> 1  1   0    1 0.2398106 0.4499785
-#> 2  1   0    2 0.3387974 0.5209293
-#> 3  1   0    3 0.6341120 1.0634402
-#> 4  1   0    4 0.6870637 0.8692466
-#> 5  1   0    5 1.1433024 1.4113951
-#> 6  1   0    6 1.3980400 1.3448466
-```
-
 ### Fitting the models with `fit.surr()`
 
 [`fit.surr()`](https://silvaneojunior.github.io/OnlineSurr/reference/fit.surr.md)
@@ -122,13 +66,21 @@ requires:
 
 ``` r
 library(OnlineSurr)
+head(sim_onlinesurr)
+#>   id trt time          s         y
+#> 1  1   0    1 0.02116371 0.3072608
+#> 2  1   0    2 0.37008517 0.7649493
+#> 3  1   0    3 0.63126012 1.0500510
+#> 4  1   0    4 0.79780239 1.0951569
+#> 5  1   0    5 1.06470750 1.5650095
+#> 6  1   0    6 1.24374405 1.4326703
 
 fit <- fit.surr(
   formula   = y ~ 1, # baseline fixed effects; trt*time terms added internally
   id        = id,
   surrogate = ~s, # surrogate structure
   treat     = trt,
-  data      = dat,
+  data      = sim_onlinesurr,
   time      = time,
   N.boots   = 2000, # bootstrap draws stored in the fitted object
   verbose   = 0 # hide progress
@@ -155,7 +107,7 @@ fit <- fit.surr(
   id        = id,
   surrogate = ~ s(s) + s(lagged(s, 1)) + s(lagged(s, 2)), # surrogate structure
   treat     = trt,
-  data      = dat,
+  data      = sim_onlinesurr,
   time      = time,
   verbose   = 0 # hide progress
 )
@@ -199,14 +151,14 @@ summary(fit, t = 6, cumulative = TRUE)
 #> 
 #> Cummulated effects at time 6:
 #>         Estimate Std. Error t value   Pr(>|t|)   
-#> Delta    9.01931  0.05600   161.06739 0.0000e+00 ***
-#> Delta.R  2.47893  0.41384     5.99008 2.0973e-09 ***
-#> CPTE     0.72515  0.04604       -         -       
+#> Delta    8.99606  0.05060   177.77382 0.0000e+00 ***
+#> Delta.R  2.99490  0.48610     6.16108 7.2251e-10 ***
+#> CPTE     0.66709  0.05387       -         -       
 #> 
 #> Time homogeneity test: 
 #> 
 #> Test stat.   Crit. value   p-value     
-#>    1.12582       2.45246    0.61942    
+#>    1.05798       2.44403    0.65432    
 #> ---
 #> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
@@ -220,19 +172,19 @@ summary(fit, t = 6, cumulative = TRUE)
 plot(fit, type = "LPTE") # Local PTE over time
 ```
 
-![](vignette_files/figure-html/unnamed-chunk-5-1.png)
+![](vignette_files/figure-html/unnamed-chunk-4-1.png)
 
 ``` r
 plot(fit, type = "CPTE") # Cumulative PTE over time
 ```
 
-![](vignette_files/figure-html/unnamed-chunk-5-2.png)
+![](vignette_files/figure-html/unnamed-chunk-4-2.png)
 
 ``` r
 plot(fit, type = "Delta") # Delta and Delta_R over time
 ```
 
-![](vignette_files/figure-html/unnamed-chunk-5-3.png)
+![](vignette_files/figure-html/unnamed-chunk-4-3.png)
 
 Interpretation notes:
 
@@ -251,14 +203,14 @@ distribution.
 test <- time_homo_test(fit, signif.level = 0.05, N.boots = 50000)
 test
 #> $T
-#> [1] 1.125824
+#> [1] 1.05798
 #> 
 #> $T.crit
 #>      95% 
-#> 2.449603 
+#> 2.446708 
 #> 
 #> $p.value
-#> [1] 0.61756
+#> [1] 0.65408
 ```
 
 Returned components:
@@ -291,12 +243,12 @@ aspects of the package.
 
 ``` r
 sessionInfo()
-#> R version 4.5.1 (2025-06-13 ucrt)
+#> R version 4.4.1 (2024-06-14 ucrt)
 #> Platform: x86_64-w64-mingw32/x64
-#> Running under: Windows 10 x64 (build 19045)
+#> Running under: Windows 11 x64 (build 22631)
 #> 
 #> Matrix products: default
-#>   LAPACK version 3.12.0
+#> 
 #> 
 #> locale:
 #> [1] LC_COLLATE=English_United States.utf8 
@@ -312,28 +264,29 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] OnlineSurr_0.0.2
+#> [1] OnlineSurr_0.0.4
 #> 
 #> loaded via a namespace (and not attached):
-#>  [1] sass_0.4.10         generics_0.1.4      tidyr_1.3.2        
-#>  [4] digest_0.6.37       magrittr_2.0.3      evaluate_1.0.5     
-#>  [7] grid_4.5.1          RColorBrewer_1.1-3  fastmap_1.2.0      
-#> [10] jsonlite_2.0.0      extraDistr_1.10.0   kDGLM_1.2.14       
-#> [13] purrr_1.0.4         scales_1.4.0        textshaping_1.0.4  
-#> [16] jquerylib_0.1.4     Rdpack_2.6.5        cli_3.6.5          
-#> [19] rlang_1.1.7         zigg_0.0.2          rbibutils_2.4.1    
-#> [22] withr_3.0.2         cachem_1.1.0        yaml_2.3.12        
-#> [25] otel_0.2.0          tools_4.5.1         dplyr_1.1.4        
-#> [28] ggplot2_4.0.2       latex2exp_0.9.8     Rfast_2.1.5.1      
-#> [31] vctrs_0.6.5         R6_2.6.1            lifecycle_1.0.5    
-#> [34] fs_1.6.6            htmlwidgets_1.6.4   ragg_1.5.0         
-#> [37] pkgconfig_2.0.3     desc_1.4.3          pkgdown_2.2.0      
-#> [40] RcppParallel_5.1.10 pillar_1.11.1       bslib_0.10.0       
-#> [43] gtable_0.3.6        glue_1.8.0          Rcpp_1.1.0         
-#> [46] systemfonts_1.3.1   xfun_0.52           tibble_3.3.1       
-#> [49] tidyselect_1.2.1    rstudioapi_0.18.0   knitr_1.51         
-#> [52] farver_2.1.2        htmltools_0.5.8.1   rmarkdown_2.31     
-#> [55] labeling_0.4.3      compiler_4.5.1      S7_0.2.1
+#>  [1] sass_0.4.9          generics_0.1.3      tidyr_1.3.1        
+#>  [4] stringi_1.8.4       digest_0.6.37       magrittr_2.0.3     
+#>  [7] evaluate_1.0.3      grid_4.4.1          RColorBrewer_1.1-3 
+#> [10] fastmap_1.2.0       jsonlite_1.8.9      extraDistr_1.10.0  
+#> [13] kDGLM_1.2.14        purrr_1.0.2         scales_1.4.0       
+#> [16] textshaping_1.0.0   jquerylib_0.1.4     Rdpack_2.6.2       
+#> [19] cli_3.6.3           rlang_1.1.7         rbibutils_2.3      
+#> [22] withr_3.0.2         cachem_1.1.0        yaml_2.3.10        
+#> [25] tools_4.4.1         parallel_4.4.1      dplyr_1.1.4        
+#> [28] ggplot2_4.0.1       latex2exp_0.9.6     Rfast_2.1.4        
+#> [31] RcppZiggurat_0.1.6  vctrs_0.6.5         R6_2.5.1           
+#> [34] lifecycle_1.0.4     stringr_1.5.1       fs_1.6.5           
+#> [37] htmlwidgets_1.6.4   ragg_1.5.2          pkgconfig_2.0.3    
+#> [40] desc_1.4.3          pkgdown_2.2.0       RcppParallel_5.1.10
+#> [43] pillar_1.10.1       bslib_0.8.0         gtable_0.3.6       
+#> [46] glue_1.8.0          Rcpp_1.0.14         systemfonts_1.2.3  
+#> [49] xfun_0.50           tibble_3.2.1        tidyselect_1.2.1   
+#> [52] rstudioapi_0.17.1   knitr_1.49          farver_2.1.2       
+#> [55] htmltools_0.5.8.1   labeling_0.4.3      rmarkdown_2.29     
+#> [58] compiler_4.4.1      S7_0.2.0
 ```
 
 Santos Jr., S. V. dos, and Parast, L. (2026). [A causal framework for

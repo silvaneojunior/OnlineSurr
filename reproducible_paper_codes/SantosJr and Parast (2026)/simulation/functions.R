@@ -46,12 +46,9 @@ generate_obs=function(treat.val.y,treat.val.sur,phi,df,sign,N,T){
 
 # Generates data under the study scenarios, fits the competing methods, computes summary
 # statistics and test quantities, and writes the results to an output file.
-run_set=function(reps){
+run_set=function(reps,cases){
   count=0
-  for(case in c(
-    'Study 1 - Case 1','Study 1 - Case 2','Study 1 - Case 3',
-    'Study 2 - Case 2','Study 2 - Case 3','Study 2 - Case 4','Study 2 - Case 5'
-  )){
+  for(case in cases){
     for(PTE.true in pte.list[[case]]){
       # N is the number of patients in the study.
       for(N in N.list){

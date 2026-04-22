@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">OnlineSurr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -92,15 +92,15 @@
 
 
 <dt id="arg-d-local">D.local<a class="anchor" aria-label="anchor" href="#arg-d-local"></a></dt>
-<dd><p>Numeric, a number between 0 and 1 indicating the discount factor to be used for the random effect block. This factor controls how smooth the random effect evolve over time. A discount factor of 1 means that the random effects do not change over time, so that each individual has its own local level, but that level is the same for all times. A discount factor of 0 is not acceptable (the kDGLM package will replace it by 1), but values closer to 0 imply in a more flexible dynamic. See (West and Harrison 1997)
- or the appendix in (dos Santos Jr. and Parast 2026)
+<dd><p>Numeric, a number between 0 and 1 indicating the discount factor to be used for the random effect block. This factor controls how smooth the random effect evolve over time. A discount factor of 1 means that the random effects do not change over time, so that each individual has its own local level, but that level is the same for all times. A discount factor of 0 is not acceptable (the kDGLM package will replace it by 1), but values closer to 0 imply in a more flexible dynamic. See West and Harrison (1997)
+ or the appendix in dos Santos Jr. and Parast (2026)
  for instructions on how to specify the discount factor.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An object of class <code>"fitted_onlinesurr"</code>: a named list with elements <code>$Marginal</code> and <code>$Conditional</code>. Each of these contains:</p><ul><li><p><code>point</code>: the point estimate vector of the fixed effects (excluding subject-specific random-walk states) at the final time point.</p></li>
-<li><p><code>smp</code>: a matrix of bootstrap draws for those fixed effects, with one column per bootstrap replicate.</p></li>
+    <p>An object of class <code>"fitted_onlinesurr"</code>: a named list with elements <code>$Marginal</code> and <code>$Conditional</code>. Each of these contains:</p><ul><li><p><code>point</code>: the point estimate vector of the treatment effect at each time point.</p></li>
+<li><p><code>smp</code>: a matrix of bootstrap draws for the treatment effect at each time point, with one column per bootstrap replicate. The draws are generated from the joint distribution of the full vector, thereby accounting for the dependence among different time points. The samples from the marginal (total effect) and conditional (residual effect) models are paired, so that the i-th samples from both models are drawn jointly from the distribution of the estimators.</p></li>
 </ul><p>The object also includes:</p><ul><li><p><code>T</code>: number of unique time points.</p></li>
 <li><p><code>N</code>: number of subjects.</p></li>
 <li><p><code>n.fixed</code>: number of fixed-effect coefficients implied by <code>formula</code> for a single subject prior to stacking across subjects.</p></li>
@@ -108,36 +108,55 @@
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The implementation follows a two-model decomposition used for estimating longitudinal treatment effects and surrogate-adjusted (residual) treatment effects in a state-space framework.</p>
-<p>See (dos Santos Jr. and Parast 2026)
+<p>See dos Santos Jr. and Parast (2026)
  for details on the methodology.</p>
-<p>See (West and Harrison 1997)
+<p>See West and Harrison (1997)
  for best practices on model specification in the state-space model setting.</p>
 
 <p><strong>Data requirements.</strong> The data must have at most one row per subject-time pair; time must be numeric and equally spaced (or omitted, in which case an index is created). Treatment and subject identifiers are coerced to factors with sorted levels.</p>
 <p><strong>Model structure.</strong> The marginal model includes treatment-by-time fixed effects and a subject-specific random-walk component to capture within-subject correlation. The conditional model adds the user-specified surrogate structure to the design, and checks that treatment is not a linear combination of the surrogate design (rank check).</p>
 <p><strong>Bootstrap.</strong> Subjects are resampled with replacement. Subject-specific filtered quantities are computed once and recombined in each bootstrap iteration to reduce computational cost, consistent with a subject-level nonparametric bootstrap strategy for replicated time series.</p>
     </div>
+    <div class="section level2">
+    <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
+    <p>Silvaneo
+V. dos Santos Jr., Layla Parast (2026).
+“A Causal Framework for Evaluating Jointly Longitudinal Outcomes and Surrogate Markers: A State-Space Approach.”
+2604.12882, <a href="https://arxiv.org/abs/2604.12882" class="external-link">https://arxiv.org/abs/2604.12882</a>.<br><br> Mike West, Jeff Harrison (1997).
+<em>Bayesian Forecasting and Dynamic Models (Springer Series in Statistics)</em>.
+Springer-Verlag.
+ISBN 0387947256.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="co"># data columns: y (outcome), id (subject id), trt (0/1 or two-level factor),</span></span></span>
-<span class="r-in"><span><span class="co"># time (numeric equally spaced), s1 and s2 (surrogates)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">fit.surr</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  formula    <span class="op">=</span> <span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, <span class="co"># baseline fixed effects; function adds trt*time terms</span></span></span>
-<span class="r-in"><span>  id         <span class="op">=</span> <span class="va">id</span>,</span></span>
-<span class="r-in"><span>  surrogate  <span class="op">=</span> <span class="op">~</span> <span class="va">s1</span> <span class="op">+</span> <span class="va">s2</span>,</span></span>
-<span class="r-in"><span>  treat      <span class="op">=</span> <span class="va">trt</span>,</span></span>
-<span class="r-in"><span>  data       <span class="op">=</span> <span class="va">dat</span>,</span></span>
-<span class="r-in"><span>  time       <span class="op">=</span> <span class="va">time</span>,</span></span>
-<span class="r-in"><span>  N.boots    <span class="op">=</span> <span class="fl">500</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">fit.surr</span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>,</span></span>
+<span class="r-in"><span>  id <span class="op">=</span> <span class="va">id</span>,</span></span>
+<span class="r-in"><span>  surrogate <span class="op">=</span> <span class="op">~</span><span class="va">s</span>,</span></span>
+<span class="r-in"><span>  treat <span class="op">=</span> <span class="va">trt</span>,</span></span>
+<span class="r-in"><span>  data <span class="op">=</span> <span class="va">sim_onlinesurr</span>, <span class="co"># This dataset is included in the OnlineSurr package</span></span></span>
+<span class="r-in"><span>  time <span class="op">=</span> <span class="va">time</span>,</span></span>
+<span class="r-in"><span>  verbose <span class="op">=</span> <span class="fl">0</span>,</span></span>
+<span class="r-in"><span>  N.boots <span class="op">=</span> <span class="fl">500</span> <span class="co"># Generally, this value would be too small.</span></span></span>
+<span class="r-in"><span>  <span class="co"># Remember to increase it for your dataset.</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Access point estimates and bootstrap samples</span></span></span>
-<span class="r-in"><span><span class="va">fit</span><span class="op">$</span><span class="va">Marginal</span><span class="op">$</span><span class="va">point</span></span></span>
-<span class="r-in"><span><span class="va">fit</span><span class="op">$</span><span class="va">Conditional</span><span class="op">$</span><span class="va">smp</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fitted Online Surrogate</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Cummulated effects at time 6:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         Estimate Std. Error t value   Pr(&gt;|t|)   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Delta    8.99606  0.04861   185.06592 0.0000e+00 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Delta.R  2.99490  0.47800     6.26547 3.7169e-10 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CPTE     0.66709  0.05306       -         -       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Time homogeneity test: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Test stat.   Crit. value   p-value     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    1.11091       2.43248    0.62236    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

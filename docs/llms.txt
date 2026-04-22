@@ -69,7 +69,8 @@ time_homo_test(fit)
 Go here to view a tutorial for this package: [OnlineSurr
 vignette](https://silvaneojunior.github.io/OnlineSurr/articles/vignette.html)
 
-See @santos2026causalframeworkevaluatingjointly for details about the
+See [Santos Jr. and Parast
+(2026)](https://doi.org/10.48550/arXiv.2604.12882) for details about the
 theoretical aspects of the package.
 
 ## Notes and limitations
@@ -112,6 +113,9 @@ Santos Jr., S. V. dos, and Parast, L. (2026). A causal framework for evaluating 
 
 - [`s()`](https://silvaneojunior.github.io/OnlineSurr/reference/s.md) :
   Construct a B-spline basis matrix
+
+- [`sim_onlinesurr`](https://silvaneojunior.github.io/OnlineSurr/reference/sim_onlinesurr.md)
+  : Simulated longitudinal surrogate dataset for \`OnlineSurr\`
 
 - [`summary(`*`<fitted_onlinesurr>`*`)`](https://silvaneojunior.github.io/OnlineSurr/reference/summary.fitted_onlinesurr.md)
   :

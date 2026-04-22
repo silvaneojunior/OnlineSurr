@@ -69,7 +69,8 @@ time_homo_test(fit)
 Go here to view a tutorial for this package: [OnlineSurr
 vignette](https://silvaneojunior.github.io/OnlineSurr/articles/vignette.html)
 
-See @santos2026causalframeworkevaluatingjointly for details about the
+See [Santos Jr. and Parast
+(2026)](https://doi.org/10.48550/arXiv.2604.12882) for details about the
 theoretical aspects of the package.
 
 ## Notes and limitations

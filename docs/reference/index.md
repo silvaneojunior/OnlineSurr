@@ -18,6 +18,9 @@
 - [`s()`](https://silvaneojunior.github.io/OnlineSurr/reference/s.md) :
   Construct a B-spline basis matrix
 
+- [`sim_onlinesurr`](https://silvaneojunior.github.io/OnlineSurr/reference/sim_onlinesurr.md)
+  : Simulated longitudinal surrogate dataset for \`OnlineSurr\`
+
 - [`summary(`*`<fitted_onlinesurr>`*`)`](https://silvaneojunior.github.io/OnlineSurr/reference/summary.fitted_onlinesurr.md)
   :
 

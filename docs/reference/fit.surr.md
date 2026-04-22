@@ -81,19 +81,24 @@ fit.surr(
   its own local level, but that level is the same for all times. A
   discount factor of 0 is not acceptable (the kDGLM package will replace
   it by 1), but values closer to 0 imply in a more flexible dynamic. See
-  (West and Harrison 1997) or the appendix in (dos Santos Jr. and
-  Parast 2026) for instructions on how to specify the discount factor.
+  West and Harrison (1997) or the appendix in dos Santos Jr. and
+  Parast (2026) for instructions on how to specify the discount factor.
 
 ## Value
 
 An object of class `"fitted_onlinesurr"`: a named list with elements
 `$Marginal` and `$Conditional`. Each of these contains:
 
-- `point`: the point estimate vector of the fixed effects (excluding
-  subject-specific random-walk states) at the final time point.
+- `point`: the point estimate vector of the treatment effect at each
+  time point.
 
-- `smp`: a matrix of bootstrap draws for those fixed effects, with one
-  column per bootstrap replicate.
+- `smp`: a matrix of bootstrap draws for the treatment effect at each
+  time point, with one column per bootstrap replicate. The draws are
+  generated from the joint distribution of the full vector, thereby
+  accounting for the dependence among different time points. The samples
+  from the marginal (total effect) and conditional (residual effect)
+  models are paired, so that the i-th samples from both models are drawn
+  jointly from the distribution of the estimators.
 
 The object also includes:
 
@@ -110,9 +115,9 @@ The implementation follows a two-model decomposition used for estimating
 longitudinal treatment effects and surrogate-adjusted (residual)
 treatment effects in a state-space framework.
 
-See (dos Santos Jr. and Parast 2026) for details on the methodology.
+See dos Santos Jr. and Parast (2026) for details on the methodology.
 
-See (West and Harrison 1997) for best practices on model specification
+See West and Harrison (1997) for best practices on model specification
 in the state-space model setting.
 
 **Data requirements.** The data must have at most one row per
@@ -132,25 +137,43 @@ filtered quantities are computed once and recombined in each bootstrap
 iteration to reduce computational cost, consistent with a subject-level
 nonparametric bootstrap strategy for replicated time series.
 
+## References
+
+Silvaneo V. dos Santos Jr., Layla Parast (2026). “A Causal Framework for
+Evaluating Jointly Longitudinal Outcomes and Surrogate Markers: A
+State-Space Approach.” 2604.12882, <https://arxiv.org/abs/2604.12882>.  
+  
+Mike West, Jeff Harrison (1997). *Bayesian Forecasting and Dynamic
+Models (Springer Series in Statistics)*. Springer-Verlag. ISBN
+0387947256.
+
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
-# data columns: y (outcome), id (subject id), trt (0/1 or two-level factor),
-# time (numeric equally spaced), s1 and s2 (surrogates)
-
-fit <- fit.surr(
-  formula    = y ~ 1, # baseline fixed effects; function adds trt*time terms
-  id         = id,
-  surrogate  = ~ s1 + s2,
-  treat      = trt,
-  data       = dat,
-  time       = time,
-  N.boots    = 500
+fit <- fit.surr(y ~ 1,
+  id = id,
+  surrogate = ~s,
+  treat = trt,
+  data = sim_onlinesurr, # This dataset is included in the OnlineSurr package
+  time = time,
+  verbose = 0,
+  N.boots = 500 # Generally, this value would be too small.
+  # Remember to increase it for your dataset.
 )
-
-# Access point estimates and bootstrap samples
-fit$Marginal$point
-fit$Conditional$smp[, 1:10]
-} # }
+summary(fit)
+#> Fitted Online Surrogate
+#> 
+#> Cummulated effects at time 6:
+#>         Estimate Std. Error t value   Pr(>|t|)   
+#> Delta    8.99606  0.04861   185.06592 0.0000e+00 ***
+#> Delta.R  2.99490  0.47800     6.26547 3.7169e-10 ***
+#> CPTE     0.66709  0.05306       -         -       
+#> 
+#> Time homogeneity test: 
+#> 
+#> Test stat.   Crit. value   p-value     
+#>    1.11091       2.43248    0.62236    
+#> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#> 
 ```

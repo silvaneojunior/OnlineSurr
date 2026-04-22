@@ -33,13 +33,13 @@ fit.surr(
 
 \item{verbose}{Logical scalar indicating whether to print progress information during model fitting. If \code{TRUE}, progress updates are shown; if \code{FALSE}, no progress output is produced.}
 
-\item{D.local}{Numeric, a number between 0 and 1 indicating the discount factor to be used for the random effect block. This factor controls how smooth the random effect evolve over time. A discount factor of 1 means that the random effects do not change over time, so that each individual has its own local level, but that level is the same for all times. A discount factor of 0 is not acceptable (the kDGLM package will replace it by 1), but values closer to 0 imply in a more flexible dynamic. See \insertCite{West-DLM}{OnlineSurr} or the appendix in \insertCite{santos2026causalframeworkevaluatingjointly}{OnlineSurr} for instructions on how to specify the discount factor.}
+\item{D.local}{Numeric, a number between 0 and 1 indicating the discount factor to be used for the random effect block. This factor controls how smooth the random effect evolve over time. A discount factor of 1 means that the random effects do not change over time, so that each individual has its own local level, but that level is the same for all times. A discount factor of 0 is not acceptable (the kDGLM package will replace it by 1), but values closer to 0 imply in a more flexible dynamic. See \insertCite{West-DLM;textual}{OnlineSurr} or the appendix in \insertCite{santos2026causalframeworkevaluatingjointly;textual}{OnlineSurr} for instructions on how to specify the discount factor.}
 }
 \value{
 An object of class \code{"fitted_onlinesurr"}: a named list with elements \code{$Marginal} and \code{$Conditional}. Each of these contains:
   \itemize{
-    \item \code{point}: the point estimate vector of the fixed effects (excluding subject-specific random-walk states) at the final time point.
-    \item \code{smp}: a matrix of bootstrap draws for those fixed effects, with one column per bootstrap replicate.
+    \item \code{point}: the point estimate vector of the treatment effect at each time point.
+    \item \code{smp}: a matrix of bootstrap draws for the treatment effect at each time point, with one column per bootstrap replicate. The draws are generated from the joint distribution of the full vector, thereby accounting for the dependence among different time points. The samples from the marginal (total effect) and conditional (residual effect) models are paired, so that the i-th samples from both models are drawn jointly from the distribution of the estimators.
   }
   The object also includes:
   \itemize{
@@ -54,9 +54,9 @@ Fits two Gaussian state-space models (Dynamic Linear Models) to jointly longitud
 \details{
 The implementation follows a two-model decomposition used for estimating longitudinal treatment effects and surrogate-adjusted (residual) treatment effects in a state-space framework.
 
-See \insertCite{santos2026causalframeworkevaluatingjointly}{OnlineSurr} for details on the methodology.
+See \insertCite{santos2026causalframeworkevaluatingjointly;textual}{OnlineSurr} for details on the methodology.
 
-See \insertCite{West-DLM}{OnlineSurr} for best practices on model specification in the state-space model setting.
+See \insertCite{West-DLM;textual}{OnlineSurr} for best practices on model specification in the state-space model setting.
 
 
 \strong{Data requirements.} The data must have at most one row per subject-time pair; time must be numeric and equally spaced (or omitted, in which case an index is created). Treatment and subject identifiers are coerced to factors with sorted levels.
@@ -66,23 +66,20 @@ See \insertCite{West-DLM}{OnlineSurr} for best practices on model specification 
 \strong{Bootstrap.} Subjects are resampled with replacement. Subject-specific filtered quantities are computed once and recombined in each bootstrap iteration to reduce computational cost, consistent with a subject-level nonparametric bootstrap strategy for replicated time series.
 }
 \examples{
-\dontrun{
-# data columns: y (outcome), id (subject id), trt (0/1 or two-level factor),
-# time (numeric equally spaced), s1 and s2 (surrogates)
 
-fit <- fit.surr(
-  formula    = y ~ 1, # baseline fixed effects; function adds trt*time terms
-  id         = id,
-  surrogate  = ~ s1 + s2,
-  treat      = trt,
-  data       = dat,
-  time       = time,
-  N.boots    = 500
+fit <- fit.surr(y ~ 1,
+  id = id,
+  surrogate = ~s,
+  treat = trt,
+  data = sim_onlinesurr, # This dataset is included in the OnlineSurr package
+  time = time,
+  verbose = 0,
+  N.boots = 500 # Generally, this value would be too small.
+  # Remember to increase it for your dataset.
 )
+summary(fit)
 
-# Access point estimates and bootstrap samples
-fit$Marginal$point
-fit$Conditional$smp[, 1:10]
 }
-
+\references{
+\insertAllCited{}
 }

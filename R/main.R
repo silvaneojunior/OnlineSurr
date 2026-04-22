@@ -4,9 +4,9 @@
 #'
 #' The implementation follows a two-model decomposition used for estimating longitudinal treatment effects and surrogate-adjusted (residual) treatment effects in a state-space framework.
 #'
-#' See \insertCite{santos2026causalframeworkevaluatingjointly}{OnlineSurr} for details on the methodology.
+#' See \insertCite{santos2026causalframeworkevaluatingjointly;textual}{OnlineSurr} for details on the methodology.
 #'
-#' See \insertCite{West-DLM}{OnlineSurr} for best practices on model specification in the state-space model setting.
+#' See \insertCite{West-DLM;textual}{OnlineSurr} for best practices on model specification in the state-space model setting.
 #'
 #' @param formula An object of class \code{formula} describing the fixed-effects mean structure for the primary outcome. The left-hand side must be the outcome variable. Internally, the right-hand side is augmented to include treatment-by-time fixed effects.
 #' @param id A variable (unquoted) identifying subjects. Each subject must have at most one measurement per \code{time} value.
@@ -16,12 +16,12 @@
 #' @param time Optional variable (unquoted) giving the measurement time index. Must be numeric and equally spaced across observed time points. If \code{NULL}, an equally spaced within-subject index is created in the current row order (with a warning).
 #' @param N.boots Integer number of subject-level bootstrap replicates. Each replicate resamples subjects with replacement and recombines subject-specific sufficient quantities to form bootstrap draws of the fixed effects.
 #' @param verbose Logical scalar indicating whether to print progress information during model fitting. If \code{TRUE}, progress updates are shown; if \code{FALSE}, no progress output is produced.
-#' @param D.local Numeric, a number between 0 and 1 indicating the discount factor to be used for the random effect block. This factor controls how smooth the random effect evolve over time. A discount factor of 1 means that the random effects do not change over time, so that each individual has its own local level, but that level is the same for all times. A discount factor of 0 is not acceptable (the kDGLM package will replace it by 1), but values closer to 0 imply in a more flexible dynamic. See \insertCite{West-DLM}{OnlineSurr} or the appendix in \insertCite{santos2026causalframeworkevaluatingjointly}{OnlineSurr} for instructions on how to specify the discount factor.
+#' @param D.local Numeric, a number between 0 and 1 indicating the discount factor to be used for the random effect block. This factor controls how smooth the random effect evolve over time. A discount factor of 1 means that the random effects do not change over time, so that each individual has its own local level, but that level is the same for all times. A discount factor of 0 is not acceptable (the kDGLM package will replace it by 1), but values closer to 0 imply in a more flexible dynamic. See \insertCite{West-DLM;textual}{OnlineSurr} or the appendix in \insertCite{santos2026causalframeworkevaluatingjointly;textual}{OnlineSurr} for instructions on how to specify the discount factor.
 #'
 #' @return An object of class \code{"fitted_onlinesurr"}: a named list with elements \code{$Marginal} and \code{$Conditional}. Each of these contains:
 #'   \itemize{
-#'     \item \code{point}: the point estimate vector of the fixed effects (excluding subject-specific random-walk states) at the final time point.
-#'     \item \code{smp}: a matrix of bootstrap draws for those fixed effects, with one column per bootstrap replicate.
+#'     \item \code{point}: the point estimate vector of the treatment effect at each time point.
+#'     \item \code{smp}: a matrix of bootstrap draws for the treatment effect at each time point, with one column per bootstrap replicate. The draws are generated from the joint distribution of the full vector, thereby accounting for the dependence among different time points. The samples from the marginal (total effect) and conditional (residual effect) models are paired, so that the i-th samples from both models are drawn jointly from the distribution of the estimators.
 #'   }
 #'   The object also includes:
 #'   \itemize{
@@ -38,24 +38,21 @@
 #' \strong{Bootstrap.} Subjects are resampled with replacement. Subject-specific filtered quantities are computed once and recombined in each bootstrap iteration to reduce computational cost, consistent with a subject-level nonparametric bootstrap strategy for replicated time series.
 #'
 #' @examples
-#' \dontrun{
-#' # data columns: y (outcome), id (subject id), trt (0/1 or two-level factor),
-#' # time (numeric equally spaced), s1 and s2 (surrogates)
 #'
-#' fit <- fit.surr(
-#'   formula    = y ~ 1, # baseline fixed effects; function adds trt*time terms
-#'   id         = id,
-#'   surrogate  = ~ s1 + s2,
-#'   treat      = trt,
-#'   data       = dat,
-#'   time       = time,
-#'   N.boots    = 500
+#' fit <- fit.surr(y ~ 1,
+#'   id = id,
+#'   surrogate = ~s,
+#'   treat = trt,
+#'   data = sim_onlinesurr, # This dataset is included in the OnlineSurr package
+#'   time = time,
+#'   verbose = 0,
+#'   N.boots = 500 # Generally, this value would be too small.
+#'   # Remember to increase it for your dataset.
 #' )
+#' summary(fit)
 #'
-#' # Access point estimates and bootstrap samples
-#' fit$Marginal$point
-#' fit$Conditional$smp[, 1:10]
-#' }
+#' @references
+#' \insertAllCited{}
 #'
 #' @import kDGLM
 #' @import dplyr
@@ -65,10 +62,6 @@
 #' @export
 fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.boots = 2000, verbose = 1, D.local = 0.8) {
   family <- Normal
-
-  # Possible errors:
-  # variables are not what they're supposed to be
-
 
   Y <- model.frame(update.formula(formula, ~1), data = data, na.action = na.pass)
   name.Y <- names(Y)[1]
@@ -160,7 +153,7 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
   treat.name <- (unique(treat.list)[2])
   treat.list <- (treat.list == treat.name)
 
-  T <- dim(Y.mat)[1]
+  T.len <- dim(Y.mat)[1]
   N <- dim(Y.mat)[2]
   pat.names <- names(Y.mat)
 
@@ -236,8 +229,8 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
     args$structure <- structure
     model <- do.call(fit_model, args)
     W.est <- model$W
-    R1.est.control <- var(model$mt[(1:N)[!treat.list], T])
-    R1.est.treat <- var(model$mt[(1:N)[treat.list], T])
+    R1.est.control <- var(model$mt[(1:N)[!treat.list], T.len])
+    R1.est.treat <- var(model$mt[(1:N)[treat.list], T.len])
 
 
     mt <- matrix(NA, structure$n - N + 1, N)
@@ -268,10 +261,8 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
       args$structure <- structure.cur
       model.cur <- do.call(fit_model, args)
 
-      # max(abs(model$W[,,T]-diag(diag(model$W[,,T]))))
-
-      St[, , i] <- S.cur <- model.cur$Ct[, , T] %>% ginv()
-      mt[, i] <- S.cur %*% model.cur$mt[, T]
+      St[, , i] <- S.cur <- model.cur$Ct[, , T.len] %>% ginv()
+      mt[, i] <- S.cur %*% model.cur$mt[, T.len]
 
       if (verbose) {
         spent <- difftime(Sys.time(), start, units = "mins")
@@ -324,13 +315,13 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
     }
 
     if (marg) {
-      treat.effect <- rep(NA, T)
-      treat.effect.smp <- matrix(NA, N.boots, T)
+      treat.effect <- rep(NA, T.len)
+      treat.effect.smp <- matrix(NA, N.boots, T.len)
       theta <- point.est
       theta.smp <- mt.smp
       vals.control <- model$FF[-(1:N), !treat.list, , drop = FALSE]
       vals.treat <- model$FF[-(1:N), treat.list, , drop = FALSE]
-      for (t in 1:T) {
+      for (t in 1:T.len) {
         treat.effect[t] <- mean(t(vals.treat[, , t]) %*% theta) -
           mean(t(vals.control[, , t]) %*% theta)
         treat.effect.smp[, t] <- colMeans(t(vals.treat[, , t]) %*% theta.smp) -
@@ -347,7 +338,7 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
       )
       char.len <- floor(log10(N.control)) + 1
       pred.control <- paste0("mu.", formatC(1:N.control, width = char.len, flag = "0"))
-      data.control[[name.id]] <- rep(paste0("mu.", formatC(1:N.control, width = char.len, flag = "0")), each = T)
+      data.control[[name.id]] <- rep(paste0("mu.", formatC(1:N.control, width = char.len, flag = "0")), each = T.len)
       data.control[[name.id]] <- factor(data.control[[name.id]], levels = unique(data.control[[name.id]]))
       pat.names.control <- levels(data.control[[name.id]])
       treat.list.control <- (data.control %>% group_by(!!sym(name.id)) %>%
@@ -386,30 +377,27 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
       }
       structure.control <- structure.base.control + surrogate.base.control
 
-      treat.effect <- rep(NA, T)
-      treat.effect.smp <- matrix(NA, N.boots, T)
+      treat.effect <- rep(NA, T.len)
+      treat.effect.smp <- matrix(NA, N.boots, T.len)
       theta <- point.est
       theta.smp <- mt.smp
       vals.control <- structure.control$FF[, !treat.list.control, , drop = FALSE]
       vals.treat <- structure.control$FF[, treat.list.control, , drop = FALSE]
 
-      for (t in 1:T) {
+      for (t in 1:T.len) {
         treat.effect[t] <- mean(t(vals.treat[, , t]) %*% theta) -
           mean(t(vals.control[, , t]) %*% theta)
         treat.effect.smp[, t] <- colMeans(t(vals.treat[, , t]) %*% theta.smp) -
           colMeans(t(vals.control[, , t]) %*% theta.smp)
       }
     }
-
-
-    # models[[ifelse(marg, "Marginal", "Conditional")]] <- list(point = model$mt[-(1:N), T], smp = mt.smp)
     models[[ifelse(marg, "Marginal", "Conditional")]] <- list(point = treat.effect, smp = t(treat.effect.smp))
   }
 
   models$marg
 
   models <- append(models, list(
-    "T" = T,
+    "T" = T.len,
     "N" = N,
     "n.fixed" = n.ref
   ))
@@ -422,7 +410,7 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
 #'
 #' Tests the null hypothesis that the LPTE is constant over time. The test is based on the difference between the conditional and marginal treatment-effect trajectories implied by a fitted \code{"fitted_onlinesurr"} object, standardized by an estimated covariance, and uses a max-type statistic to control the family wise error across time points.
 #'
-#' See \insertCite{santos2026causalframeworkevaluatingjointly}{OnlineSurr} for the theoretical details about this test.
+#' See \insertCite{santos2026causalframeworkevaluatingjointly;textual}{OnlineSurr} for the theoretical details about this test.
 #'
 #' @param model A fitted object of class \code{"fitted_onlinesurr"}, typically returned by \code{fit.surr}. Must contain \code{$T}, \code{$n.fixed}, and the elements \code{$Marginal} and \code{$Conditional} with \code{point} and \code{smp} components.
 #' @param signif.level Numeric in (0,1) giving the test significance level used to form the critical value from the bootstrap distribution. Default is \code{0.05}.
@@ -449,16 +437,23 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #' fit <- fit.surr(y ~ 1,
-#'   id = id, surrogate = ~ s1 + s2, treat = trt,
-#'   data = dat, time = time, N.boots = 2000
+#'   id = id,
+#'   surrogate = ~s,
+#'   treat = trt,
+#'   data = sim_onlinesurr, # This dataset is included in the OnlineSurr package
+#'   time = time,
+#'   verbose = 0,
+#'   N.boots = 500 # Generally, this value would be too small.
+#'   # Remember to increase it for your dataset.
 #' )
 #'
-#' time_homo_test(fit, signif.level = 0.05, N.boots = 50000)
-#' }
+#' time_homo_test(fit, signif.level = 0.05, N.boots = 500)
+#'
+#' @references
+#' \insertAllCited{}
 time_homo_test <- function(model, signif.level = 0.05, N.boots = 50000) {
-  T <- model$T
+  T.len <- model$T
   n <- model$n.fixed
 
   delta.est <- model$Marginal$point
@@ -476,9 +471,9 @@ time_homo_test <- function(model, signif.level = 0.05, N.boots = 50000) {
   var.th <- var(err)
 
   # _______________________________ MSD __________________________________
-  A <- rmvnorm(N.boots, rep(0, T), var.th)
+  A <- rmvnorm(N.boots, rep(0, T.len), var.th)
   sd.th <- sqrt(diag(var.th))
-  sigma <- matrix(sd.th, T, N.boots)
+  sigma <- matrix(sd.th, T.len, N.boots)
   test.smp <- colMaxs(abs(A / sigma), value = TRUE)
   crit.val <- quantile(test.smp, 1 - signif.level)
   test.obs <- max(abs(th / sd.th))

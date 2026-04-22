@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">OnlineSurr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -69,24 +69,46 @@
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>See (dos Santos Jr. and Parast 2026)
+    <p>See dos Santos Jr. and Parast (2026)
  for the theoretical details about this test.</p>
 
 
 <p>Notes:</p><ul><li><p>The function assumes the first <code>T</code> time-specific treatment-effect parameters are stored contiguously at the beginning of <code>model$Marginal$point</code> and <code>model$Conditional$point</code> (and similarly for <code>smp</code>). It uses the index <code>1:(n.fixed)</code> as implemented in the code: <code>1:(T + n.fixed - T)</code>.</p></li>
 <li><p><code>N.boots</code> here is a Monte Carlo size for the null simulation (distinct from the bootstrap size used when fitting <code>model</code>).</p></li>
 </ul></div>
+    <div class="section level2">
+    <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
+    <p>Silvaneo
+V. dos Santos Jr., Layla Parast (2026).
+“A Causal Framework for Evaluating Jointly Longitudinal Outcomes and Surrogate Markers: A State-Space Approach.”
+2604.12882, <a href="https://arxiv.org/abs/2604.12882" class="external-link">https://arxiv.org/abs/2604.12882</a>.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="fit.surr.html">fit.surr</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>,</span></span>
-<span class="r-in"><span>  id <span class="op">=</span> <span class="va">id</span>, surrogate <span class="op">=</span> <span class="op">~</span> <span class="va">s1</span> <span class="op">+</span> <span class="va">s2</span>, treat <span class="op">=</span> <span class="va">trt</span>,</span></span>
-<span class="r-in"><span>  data <span class="op">=</span> <span class="va">dat</span>, time <span class="op">=</span> <span class="va">time</span>, N.boots <span class="op">=</span> <span class="fl">2000</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="fit.surr.html">fit.surr</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>,</span></span>
+<span class="r-in"><span>  id <span class="op">=</span> <span class="va">id</span>,</span></span>
+<span class="r-in"><span>  surrogate <span class="op">=</span> <span class="op">~</span><span class="va">s</span>,</span></span>
+<span class="r-in"><span>  treat <span class="op">=</span> <span class="va">trt</span>,</span></span>
+<span class="r-in"><span>  data <span class="op">=</span> <span class="va">sim_onlinesurr</span>, <span class="co"># This dataset is included in the OnlineSurr package</span></span></span>
+<span class="r-in"><span>  time <span class="op">=</span> <span class="va">time</span>,</span></span>
+<span class="r-in"><span>  verbose <span class="op">=</span> <span class="fl">0</span>,</span></span>
+<span class="r-in"><span>  N.boots <span class="op">=</span> <span class="fl">500</span> <span class="co"># Generally, this value would be too small.</span></span></span>
+<span class="r-in"><span>  <span class="co"># Remember to increase it for your dataset.</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="fu">time_homo_test</span><span class="op">(</span><span class="va">fit</span>, signif.level <span class="op">=</span> <span class="fl">0.05</span>, N.boots <span class="op">=</span> <span class="fl">50000</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="fu">time_homo_test</span><span class="op">(</span><span class="va">fit</span>, signif.level <span class="op">=</span> <span class="fl">0.05</span>, N.boots <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $T</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.058295</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $T.crit</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      95% </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2.341364 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $p.value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.654</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

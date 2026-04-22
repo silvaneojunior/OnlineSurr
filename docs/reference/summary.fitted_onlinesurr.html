@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">OnlineSurr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,7 +43,7 @@
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'fitted_onlinesurr'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">object</span>, t <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="cn">T</span>, cumulative <span class="op">=</span> <span class="cn">T</span>, signif.level <span class="op">=</span> <span class="fl">0.05</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">object</span>, t <span class="op">=</span> <span class="va">object</span><span class="op">$</span><span class="cn">T</span>, cumulative <span class="op">=</span> <span class="cn">TRUE</span>, signif.level <span class="op">=</span> <span class="fl">0.05</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -81,18 +81,53 @@
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="fit.surr.html">fit.surr</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>,</span></span>
-<span class="r-in"><span>  id <span class="op">=</span> <span class="va">id</span>, surrogate <span class="op">=</span> <span class="op">~</span> <span class="va">s1</span> <span class="op">+</span> <span class="va">s2</span>, treat <span class="op">=</span> <span class="va">trt</span>,</span></span>
-<span class="r-in"><span>  data <span class="op">=</span> <span class="va">dat</span>, time <span class="op">=</span> <span class="va">time</span>, N.boots <span class="op">=</span> <span class="fl">2000</span></span></span>
+<span class="r-in"><span>  id <span class="op">=</span> <span class="va">id</span>,</span></span>
+<span class="r-in"><span>  surrogate <span class="op">=</span> <span class="op">~</span><span class="va">s</span>,</span></span>
+<span class="r-in"><span>  treat <span class="op">=</span> <span class="va">trt</span>,</span></span>
+<span class="r-in"><span>  data <span class="op">=</span> <span class="va">sim_onlinesurr</span>, <span class="co"># This dataset is included in the OnlineSurr package</span></span></span>
+<span class="r-in"><span>  time <span class="op">=</span> <span class="va">time</span>,</span></span>
+<span class="r-in"><span>  verbose <span class="op">=</span> <span class="fl">0</span>,</span></span>
+<span class="r-in"><span>  N.boots <span class="op">=</span> <span class="fl">500</span> <span class="co"># Generally, this value would be too small.</span></span></span>
+<span class="r-in"><span>  <span class="co"># Remember to increase it for your dataset.</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Cumulative up to time 5</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span>, t <span class="op">=</span> <span class="fl">5</span>, cumulative <span class="op">=</span> <span class="cn">TRUE</span>, signif.level <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fitted Online Surrogate</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Cummulated effects at time 5:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         Estimate Std. Error t value   Pr(&gt;|t|)   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Delta    6.65540  0.04904   135.72003 0.0000e+00 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Delta.R  2.27557  0.35247     6.45608 1.0745e-10 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CPTE     0.65809  0.05284       -         -       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Time homogeneity test: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Test stat.   Crit. value   p-value     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    1.11084       2.43794    0.61612    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Time-specific at time 5</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span>, t <span class="op">=</span> <span class="fl">5</span>, cumulative <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fitted Online Surrogate</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Local effects at time 5:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         Estimate Std. Error t value  Pr(&gt;|t|)   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Delta    2.01395  0.02172   92.71419 0.0000e+00 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Delta.R  0.62847  0.11065    5.67994 1.3474e-08 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LPTE     0.68794  0.05494      -         -       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Time homogeneity test: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Test stat.   Crit. value   p-value     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    1.11084       2.43875    0.61710    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -34,10 +34,16 @@ print.fitted_onlinesurr <- function(x, ...) {
 #' @importFrom stats sd pnorm
 #'
 #' @examples
-#' \dontrun{
+#'
 #' fit <- fit.surr(y ~ 1,
-#'   id = id, surrogate = ~ s1 + s2, treat = trt,
-#'   data = dat, time = time, N.boots = 2000
+#'   id = id,
+#'   surrogate = ~s,
+#'   treat = trt,
+#'   data = sim_onlinesurr, # This dataset is included in the OnlineSurr package
+#'   time = time,
+#'   verbose = 0,
+#'   N.boots = 500 # Generally, this value would be too small.
+#'   # Remember to increase it for your dataset.
 #' )
 #'
 #' # Cumulative up to time 5
@@ -45,9 +51,8 @@ print.fitted_onlinesurr <- function(x, ...) {
 #'
 #' # Time-specific at time 5
 #' summary(fit, t = 5, cumulative = FALSE)
-#' }
-summary.fitted_onlinesurr <- function(object, t = object$T, cumulative = T, signif.level = 0.05, ...) {
-  T <- object$T
+summary.fitted_onlinesurr <- function(object, t = object$T, cumulative = TRUE, signif.level = 0.05, ...) {
+  T.len <- object$T
   n <- object$n.fixed
 
   delta.est <- object$Marginal$point
@@ -193,16 +198,21 @@ summary.fitted_onlinesurr <- function(object, t = object$T, cumulative = T, sign
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#'
 #' fit <- fit.surr(y ~ 1,
-#'   id = id, surrogate = ~ s1 + s2, treat = trt,
-#'   data = dat, time = time, N.boots = 2000
+#'   id = id,
+#'   surrogate = ~s,
+#'   treat = trt,
+#'   data = sim_onlinesurr, # This dataset is included in the OnlineSurr package
+#'   time = time,
+#'   verbose = 0,
+#'   N.boots = 500 # Generally, this value would be too small.
+#'   # Remember to increase it for your dataset.
 #' )
 #'
 #' plot(fit, type = "LPTE")
 #' plot(fit, type = "CPTE", conf.level = 0.90, one.sided = FALSE)
 #' plot(fit, type = "Delta")
-#' }
 plot.fitted_onlinesurr <- function(x, type = "LPTE", conf.level = 0.95, one.sided = TRUE, ...) {
   signif.level <- 1 - conf.level
   if (one.sided) {
@@ -210,7 +220,7 @@ plot.fitted_onlinesurr <- function(x, type = "LPTE", conf.level = 0.95, one.side
   }
 
   type <- tolower(type)
-  T <- x$T
+  T.len <- x$T
   n <- x$n.fixed
 
   delta.est <- x$Marginal$point
@@ -224,7 +234,7 @@ plot.fitted_onlinesurr <- function(x, type = "LPTE", conf.level = 0.95, one.side
     pte.smp <- 1 - delta.R.smp / delta.smp
 
     plot.data <- data.frame(
-      Time = 1:T,
+      Time = 1:T.len,
       point = pte,
       icl = rowQuantile(pte.smp, signif.level),
       icu = rowQuantile(pte.smp, 1 - signif.level)
@@ -234,18 +244,18 @@ plot.fitted_onlinesurr <- function(x, type = "LPTE", conf.level = 0.95, one.side
     pte.smp <- 1 - colCumSums(delta.R.smp) / colCumSums(delta.smp)
 
     plot.data <- data.frame(
-      Time = 1:T,
+      Time = 1:T.len,
       point = pte,
       icl = rowQuantile(pte.smp, signif.level),
       icu = rowQuantile(pte.smp, 1 - signif.level)
     )
   } else if (type == "delta") {
     plot.data <- data.frame(
-      Time = rep(1:T, 2),
+      Time = rep(1:T.len, 2),
       point = c(delta.est, delta.R.est),
       icl = c(rowQuantile(delta.smp, signif.level), rowQuantile(delta.R.smp, signif.level)),
       icu = c(rowQuantile(delta.smp, 1 - signif.level), rowQuantile(delta.R.smp, 1 - signif.level)),
-      color = rep(c("$Delta$", "$Delta_R$"), each = T)
+      color = rep(c("$Delta$", "$Delta_R$"), each = T.len)
     )
   }
 

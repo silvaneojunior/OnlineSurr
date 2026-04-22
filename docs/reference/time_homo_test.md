@@ -44,7 +44,7 @@ A named list with:
 
 ## Details
 
-See (dos Santos Jr. and Parast 2026) for the theoretical details about
+See dos Santos Jr. and Parast (2026) for the theoretical details about
 this test.
 
 Notes:
@@ -58,15 +58,35 @@ Notes:
 - `N.boots` here is a Monte Carlo size for the null simulation (distinct
   from the bootstrap size used when fitting `model`).
 
+## References
+
+Silvaneo V. dos Santos Jr., Layla Parast (2026). “A Causal Framework for
+Evaluating Jointly Longitudinal Outcomes and Surrogate Markers: A
+State-Space Approach.” 2604.12882, <https://arxiv.org/abs/2604.12882>.
+
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
 fit <- fit.surr(y ~ 1,
-  id = id, surrogate = ~ s1 + s2, treat = trt,
-  data = dat, time = time, N.boots = 2000
+  id = id,
+  surrogate = ~s,
+  treat = trt,
+  data = sim_onlinesurr, # This dataset is included in the OnlineSurr package
+  time = time,
+  verbose = 0,
+  N.boots = 500 # Generally, this value would be too small.
+  # Remember to increase it for your dataset.
 )
 
-time_homo_test(fit, signif.level = 0.05, N.boots = 50000)
-} # }
+time_homo_test(fit, signif.level = 0.05, N.boots = 500)
+#> $T
+#> [1] 1.058295
+#> 
+#> $T.crit
+#>      95% 
+#> 2.341364 
+#> 
+#> $p.value
+#> [1] 0.654
+#> 
 ```

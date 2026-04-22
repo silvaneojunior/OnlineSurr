@@ -368,9 +368,7 @@ models and computing LPTE/CPTE</h1>
 <li><a href="#data-requirements-and-conventions" id="toc-data-requirements-and-conventions">Data requirements and
 conventions</a></li>
 <li><a href="#package-functions-used-in-this-vignette" id="toc-package-functions-used-in-this-vignette">Package functions used
-in this vignette</a></li>
-<li><a href="#a-complete-worked-example-simulated-data" id="toc-a-complete-worked-example-simulated-data">A complete worked
-example (simulated data)</a>
+in this vignette</a>
 <ul>
 <li><a href="#fitting-the-models-with-fit.surr" id="toc-fitting-the-models-with-fit.surr">Fitting the models with
 <code>fit.surr()</code></a>
@@ -460,58 +458,6 @@ parameters.</li>
 constant over time (implemented via a max-type statistic and Monte Carlo
 approximation of the null).</li>
 </ul>
-</div>
-<div id="a-complete-worked-example-simulated-data" class="section level1">
-<h1>A complete worked example (simulated data)</h1>
-<p>This section builds a minimal simulated dataset consistent with the
-checks inside <code>fit.surr()</code>.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co"># Dimensions</span></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">100</span> <span class="co"># subjects</span></span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>T <span class="ot">&lt;-</span> <span class="dv">6</span> <span class="co"># time points</span></span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>times <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(T) <span class="co"># numeric, equally spaced</span></span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co"># Subject IDs and treatment assignment (two levels)</span></span>
-<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>id <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">seq_len</span>(N), <span class="at">each =</span> T)</span>
-<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>trt <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">rbinom</span>(N, <span class="dv">1</span>, <span class="fl">0.5</span>), <span class="at">each =</span> T) <span class="co"># 0/1</span></span>
-<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a></span>
-<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>time <span class="ot">&lt;-</span> <span class="fu">rep</span>(times, <span class="at">times =</span> N)</span>
-<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="co"># Simulate surrogate(s) and outcome</span></span>
-<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="co"># Surrogate is affected by treatment and time</span></span>
-<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>s <span class="ot">&lt;-</span></span>
-<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>  <span class="fl">0.2</span> <span class="sc">*</span> time <span class="sc">+</span> <span class="co"># Trend</span></span>
-<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>  (<span class="fl">0.2</span> <span class="sc">+</span> <span class="fl">0.4</span> <span class="sc">*</span> time) <span class="sc">*</span> trt <span class="sc">+</span> <span class="co"># Treatment effect</span></span>
-<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>  <span class="fu">rnorm</span>(N <span class="sc">*</span> T, <span class="at">sd =</span> <span class="fl">0.1</span>) <span class="co"># Noise</span></span>
-<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a></span>
-<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a><span class="co"># Outcome depends on treatment effect, time trend, surrogate, and noise</span></span>
-<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a>y <span class="ot">&lt;-</span></span>
-<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a>  <span class="fl">0.2</span> <span class="sc">+</span> <span class="co"># intercept</span></span>
-<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a>  <span class="fl">0.1</span> <span class="sc">*</span> time <span class="sc">+</span> <span class="co"># Trend</span></span>
-<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a>  (<span class="fl">0.2</span> <span class="sc">+</span> <span class="fl">0.1</span> <span class="sc">*</span> time) <span class="sc">*</span> trt <span class="sc">+</span> <span class="co"># (direct) treatment effect</span></span>
-<span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a>  <span class="fl">0.6</span> <span class="sc">*</span> s <span class="sc">+</span> <span class="co"># Surrogate effect</span></span>
-<span id="cb1-28"><a href="#cb1-28" tabindex="-1"></a>  <span class="fu">rnorm</span>(N <span class="sc">*</span> T, <span class="at">sd =</span> <span class="fl">0.1</span>) <span class="co"># Noise</span></span>
-<span id="cb1-29"><a href="#cb1-29" tabindex="-1"></a></span>
-<span id="cb1-30"><a href="#cb1-30" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb1-31"><a href="#cb1-31" tabindex="-1"></a>  <span class="at">id =</span> id,</span>
-<span id="cb1-32"><a href="#cb1-32" tabindex="-1"></a>  <span class="at">trt =</span> trt,</span>
-<span id="cb1-33"><a href="#cb1-33" tabindex="-1"></a>  <span class="at">time =</span> time,</span>
-<span id="cb1-34"><a href="#cb1-34" tabindex="-1"></a>  <span class="at">s =</span> s,</span>
-<span id="cb1-35"><a href="#cb1-35" tabindex="-1"></a>  <span class="at">y =</span> y</span>
-<span id="cb1-36"><a href="#cb1-36" tabindex="-1"></a>)</span>
-<span id="cb1-37"><a href="#cb1-37" tabindex="-1"></a></span>
-<span id="cb1-38"><a href="#cb1-38" tabindex="-1"></a><span class="co"># Ensure the data are ordered by (id, time) (recommended)</span></span>
-<span id="cb1-39"><a href="#cb1-39" tabindex="-1"></a>dat <span class="ot">&lt;-</span> dat[<span class="fu">order</span>(dat<span class="sc">$</span>id, dat<span class="sc">$</span>time), ]</span>
-<span id="cb1-40"><a href="#cb1-40" tabindex="-1"></a><span class="fu">head</span>(dat)</span>
-<span id="cb1-41"><a href="#cb1-41" tabindex="-1"></a><span class="co">#&gt;   id trt time         s         y</span></span>
-<span id="cb1-42"><a href="#cb1-42" tabindex="-1"></a><span class="co">#&gt; 1  1   0    1 0.2398106 0.4499785</span></span>
-<span id="cb1-43"><a href="#cb1-43" tabindex="-1"></a><span class="co">#&gt; 2  1   0    2 0.3387974 0.5209293</span></span>
-<span id="cb1-44"><a href="#cb1-44" tabindex="-1"></a><span class="co">#&gt; 3  1   0    3 0.6341120 1.0634402</span></span>
-<span id="cb1-45"><a href="#cb1-45" tabindex="-1"></a><span class="co">#&gt; 4  1   0    4 0.6870637 0.8692466</span></span>
-<span id="cb1-46"><a href="#cb1-46" tabindex="-1"></a><span class="co">#&gt; 5  1   0    5 1.1433024 1.4113951</span></span>
-<span id="cb1-47"><a href="#cb1-47" tabindex="-1"></a><span class="co">#&gt; 6  1   0    6 1.3980400 1.3448466</span></span></code></pre></div>
 <div id="fitting-the-models-with-fit.surr" class="section level2">
 <h2>Fitting the models with <code>fit.surr()</code></h2>
 <p><code>fit.surr()</code> requires:</p>
@@ -524,18 +470,26 @@ internally add treatment-by-time fixed effects.</li>
 string).</li>
 <li><code>time</code>: numeric time variable (unquoted).</li>
 </ul>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(OnlineSurr)</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">fit.surr</span>(</span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">formula   =</span> y <span class="sc">~</span> <span class="dv">1</span>, <span class="co"># baseline fixed effects; trt*time terms added internally</span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">id        =</span> id,</span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="at">surrogate =</span> <span class="sc">~</span>s, <span class="co"># surrogate structure</span></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  <span class="at">treat     =</span> trt,</span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="at">data      =</span> dat,</span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  <span class="at">time      =</span> time,</span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="at">N.boots   =</span> <span class="dv">2000</span>, <span class="co"># bootstrap draws stored in the fitted object</span></span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  <span class="at">verbose   =</span> <span class="dv">0</span> <span class="co"># hide progress</span></span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(OnlineSurr)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">head</span>(sim_onlinesurr)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co">#&gt;   id trt time          s         y</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co">#&gt; 1  1   0    1 0.02116371 0.3072608</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co">#&gt; 2  1   0    2 0.37008517 0.7649493</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&gt; 3  1   0    3 0.63126012 1.0500510</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&gt; 4  1   0    4 0.79780239 1.0951569</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co">#&gt; 5  1   0    5 1.06470750 1.5650095</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co">#&gt; 6  1   0    6 1.24374405 1.4326703</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">fit.surr</span>(</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>  <span class="at">formula   =</span> y <span class="sc">~</span> <span class="dv">1</span>, <span class="co"># baseline fixed effects; trt*time terms added internally</span></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>  <span class="at">id        =</span> id,</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>  <span class="at">surrogate =</span> <span class="sc">~</span>s, <span class="co"># surrogate structure</span></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>  <span class="at">treat     =</span> trt,</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>  <span class="at">data      =</span> sim_onlinesurr,</span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>  <span class="at">time      =</span> time,</span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>  <span class="at">N.boots   =</span> <span class="dv">2000</span>, <span class="co"># bootstrap draws stored in the fitted object</span></span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>  <span class="at">verbose   =</span> <span class="dv">0</span> <span class="co"># hide progress</span></span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>)</span></code></pre></div>
 <p>The formulas for the fixed effects and the surrogate structures
 accept any temporal structure available in the <code>kDGLM</code>
 package (see its vignette for details). Functions that transform the
@@ -547,17 +501,17 @@ time. We also provide the <code>s</code> function, which generates a
 spline basis for a numeric variable and can be used to model smooth,
 potentially non-linear effects without having to specify the basis
 expansion manually.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(OnlineSurr)</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">fit.surr</span>(</span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">formula   =</span> y <span class="sc">~</span> <span class="dv">1</span>, <span class="co"># baseline fixed effects; trt*time terms added internally</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">id        =</span> id,</span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">surrogate =</span> <span class="sc">~</span> <span class="fu">s</span>(s) <span class="sc">+</span> <span class="fu">s</span>(<span class="fu">lagged</span>(s, <span class="dv">1</span>)) <span class="sc">+</span> <span class="fu">s</span>(<span class="fu">lagged</span>(s, <span class="dv">2</span>)), <span class="co"># surrogate structure</span></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">treat     =</span> trt,</span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="at">data      =</span> dat,</span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>  <span class="at">time      =</span> time,</span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>  <span class="at">verbose   =</span> <span class="dv">0</span> <span class="co"># hide progress</span></span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(OnlineSurr)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">fit.surr</span>(</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">formula   =</span> y <span class="sc">~</span> <span class="dv">1</span>, <span class="co"># baseline fixed effects; trt*time terms added internally</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">id        =</span> id,</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="at">surrogate =</span> <span class="sc">~</span> <span class="fu">s</span>(s) <span class="sc">+</span> <span class="fu">s</span>(<span class="fu">lagged</span>(s, <span class="dv">1</span>)) <span class="sc">+</span> <span class="fu">s</span>(<span class="fu">lagged</span>(s, <span class="dv">2</span>)), <span class="co"># surrogate structure</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  <span class="at">treat     =</span> trt,</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="at">data      =</span> sim_onlinesurr,</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  <span class="at">time      =</span> time,</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="at">verbose   =</span> <span class="dv">0</span> <span class="co"># hide progress</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>)</span></code></pre></div>
 <div id="what-fit.surr-stores" class="section level3">
 <h3>What <code>fit.surr()</code> stores</h3>
 <p>The returned object has class <code>fitted_onlinesurr</code> and is a
@@ -595,32 +549,32 @@ correspond to the time-indexed treatment-effect parameters.</p>
 <li><code>cumulative=FALSE</code> reports time-specific quantities at
 time <code>t</code> only.</li>
 </ul>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">summary</span>(fit, <span class="at">t =</span> <span class="dv">6</span>, <span class="at">cumulative =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt; Fitted Online Surrogate</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; Cummulated effects at time 6:</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt;         Estimate Std. Error t value   Pr(&gt;|t|)   </span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; Delta    9.01931  0.05600   161.06739 0.0000e+00 ***</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; Delta.R  2.47893  0.41384     5.99008 2.0973e-09 ***</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; CPTE     0.72515  0.04604       -         -       </span></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; Time homogeneity test: </span></span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt; Test stat.   Crit. value   p-value     </span></span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;    1.12582       2.45246    0.61942    </span></span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">summary</span>(fit, <span class="at">t =</span> <span class="dv">6</span>, <span class="at">cumulative =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt; Fitted Online Surrogate</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; Cummulated effects at time 6:</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt;         Estimate Std. Error t value   Pr(&gt;|t|)   </span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; Delta    8.99606  0.05283   170.26879 0.0000e+00 ***</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; Delta.R  2.99490  0.49649     6.03213 1.6182e-09 ***</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; CPTE     0.66709  0.05498       -         -       </span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; Time homogeneity test: </span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; Test stat.   Crit. value   p-value     </span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt;    1.04993       2.43471    0.65576    </span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span></span></code></pre></div>
 </div>
 <div id="plotting-lpte-cpte-and-treatment-effects" class="section level2">
 <h2>Plotting LPTE, CPTE, and treatment effects</h2>
 <p><code>plot()</code> dispatches to
 <code>plot.fitted_onlinesurr()</code>.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">plot</span>(fit, <span class="at">type =</span> <span class="st">&quot;LPTE&quot;</span>) <span class="co"># Local PTE over time</span></span></code></pre></div>
-<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">plot</span>(fit, <span class="at">type =</span> <span class="st">&quot;CPTE&quot;</span>) <span class="co"># Cumulative PTE over time</span></span></code></pre></div>
-<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">plot</span>(fit, <span class="at">type =</span> <span class="st">&quot;Delta&quot;</span>) <span class="co"># Delta and Delta_R over time</span></span></code></pre></div>
-<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">plot</span>(fit, <span class="at">type =</span> <span class="st">&quot;LPTE&quot;</span>) <span class="co"># Local PTE over time</span></span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">plot</span>(fit, <span class="at">type =</span> <span class="st">&quot;CPTE&quot;</span>) <span class="co"># Cumulative PTE over time</span></span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">plot</span>(fit, <span class="at">type =</span> <span class="st">&quot;Delta&quot;</span>) <span class="co"># Delta and Delta_R over time</span></span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
 <p>Interpretation notes:</p>
 <ul>
 <li>LPTE measures, at each time, the proportion of the total treatment
@@ -632,17 +586,17 @@ effect explained by the surrogate, using the ratio <span class="math inline">\(1
 <h2>Testing time-homogeneity</h2>
 <p><code>time_homo_test()</code> provides a max-type test, using a Monte
 Carlo approximation of the null distribution.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>test <span class="ot">&lt;-</span> <span class="fu">time_homo_test</span>(fit, <span class="at">signif.level =</span> <span class="fl">0.05</span>, <span class="at">N.boots =</span> <span class="dv">50000</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>test</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; $T</span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; [1] 1.125824</span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; $T.crit</span></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt;      95% </span></span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt; 2.449603 </span></span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; $p.value</span></span>
-<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; [1] 0.61756</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>test <span class="ot">&lt;-</span> <span class="fu">time_homo_test</span>(fit, <span class="at">signif.level =</span> <span class="fl">0.05</span>, <span class="at">N.boots =</span> <span class="dv">50000</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>test</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; $T</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; [1] 1.049926</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; $T.crit</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt;      95% </span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt; 2.442197 </span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; $p.value</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; [1] 0.65668</span></span></code></pre></div>
 <p>Returned components:</p>
 <ul>
 <li><code>T</code>: observed test statistic</li>
@@ -674,63 +628,49 @@ details about the theoretical aspects of the package.</p>
 </div>
 <div id="session-info" class="section level1">
 <h1>Session info</h1>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; R version 4.5.1 (2025-06-13 ucrt)</span></span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; Platform: x86_64-w64-mingw32/x64</span></span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; Running under: Windows 10 x64 (build 19045)</span></span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; Matrix products: default</span></span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt;   LAPACK version 3.12.0</span></span>
-<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; locale:</span></span>
-<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt; [1] LC_COLLATE=English_United States.utf8 </span></span>
-<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt; [2] LC_CTYPE=English_United States.utf8   </span></span>
-<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; [3] LC_MONETARY=English_United States.utf8</span></span>
-<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; [4] LC_NUMERIC=C                          </span></span>
-<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt; [5] LC_TIME=English_United States.utf8    </span></span>
-<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; time zone: America/Chicago</span></span>
-<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt; tzcode source: internal</span></span>
-<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="co">#&gt; attached base packages:</span></span>
-<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods  </span></span>
-<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="co">#&gt; [7] base     </span></span>
-<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a><span class="co">#&gt; other attached packages:</span></span>
-<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a><span class="co">#&gt; [1] OnlineSurr_0.0.3</span></span>
-<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="co">#&gt;  [1] tidyselect_1.2.1    dplyr_1.1.4         farver_2.1.2       </span></span>
-<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="co">#&gt;  [4] R.utils_2.13.0      S7_0.2.1            fastmap_1.2.0      </span></span>
-<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="co">#&gt;  [7] latex2exp_0.9.8     xopen_1.0.1         digest_0.6.37      </span></span>
-<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="co">#&gt; [10] lifecycle_1.0.5     ellipsis_0.3.2      processx_3.8.6     </span></span>
-<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="co">#&gt; [13] magrittr_2.0.3      compiler_4.5.1      rlang_1.1.7        </span></span>
-<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a><span class="co">#&gt; [16] sass_0.4.10         tools_4.5.1         yaml_2.3.12        </span></span>
-<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a><span class="co">#&gt; [19] knitr_1.51          askpass_1.2.1       prettyunits_1.2.0  </span></span>
-<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a><span class="co">#&gt; [22] labeling_0.4.3      htmlwidgets_1.6.4   pkgbuild_1.4.8     </span></span>
-<span id="cb9-35"><a href="#cb9-35" tabindex="-1"></a><span class="co">#&gt; [25] curl_7.0.0          xml2_1.5.2          RColorBrewer_1.1-3 </span></span>
-<span id="cb9-36"><a href="#cb9-36" tabindex="-1"></a><span class="co">#&gt; [28] pkgload_1.5.0       R.cache_0.17.0      withr_3.0.2        </span></span>
-<span id="cb9-37"><a href="#cb9-37" tabindex="-1"></a><span class="co">#&gt; [31] purrr_1.0.4         desc_1.4.3          R.oo_1.27.1        </span></span>
-<span id="cb9-38"><a href="#cb9-38" tabindex="-1"></a><span class="co">#&gt; [34] grid_4.5.1          kDGLM_1.2.14        fansi_1.0.7        </span></span>
-<span id="cb9-39"><a href="#cb9-39" tabindex="-1"></a><span class="co">#&gt; [37] roxygen2_7.3.3      ggplot2_4.0.2       scales_1.4.0       </span></span>
-<span id="cb9-40"><a href="#cb9-40" tabindex="-1"></a><span class="co">#&gt; [40] cli_3.6.5           rmarkdown_2.31      ragg_1.5.0         </span></span>
-<span id="cb9-41"><a href="#cb9-41" tabindex="-1"></a><span class="co">#&gt; [43] generics_0.1.4      remotes_2.5.0       otel_0.2.0         </span></span>
-<span id="cb9-42"><a href="#cb9-42" tabindex="-1"></a><span class="co">#&gt; [46] RcppParallel_5.1.10 rstudioapi_0.18.0   sessioninfo_1.2.3  </span></span>
-<span id="cb9-43"><a href="#cb9-43" tabindex="-1"></a><span class="co">#&gt; [49] cachem_1.1.0        stringr_1.6.0       vctrs_0.6.5        </span></span>
-<span id="cb9-44"><a href="#cb9-44" tabindex="-1"></a><span class="co">#&gt; [52] devtools_2.4.6      jsonlite_2.0.0      callr_3.7.6        </span></span>
-<span id="cb9-45"><a href="#cb9-45" tabindex="-1"></a><span class="co">#&gt; [55] rcmdcheck_1.4.0     systemfonts_1.3.1   testthat_3.3.2     </span></span>
-<span id="cb9-46"><a href="#cb9-46" tabindex="-1"></a><span class="co">#&gt; [58] fontawesome_0.5.3   tidyr_1.3.2         jquerylib_0.1.4    </span></span>
-<span id="cb9-47"><a href="#cb9-47" tabindex="-1"></a><span class="co">#&gt; [61] glue_1.8.0          pkgdown_2.2.0       ps_1.9.1           </span></span>
-<span id="cb9-48"><a href="#cb9-48" tabindex="-1"></a><span class="co">#&gt; [64] stringi_1.8.7       gtable_0.3.6        downlit_0.4.5      </span></span>
-<span id="cb9-49"><a href="#cb9-49" tabindex="-1"></a><span class="co">#&gt; [67] tibble_3.3.1        styler_1.11.0       pillar_1.11.1      </span></span>
-<span id="cb9-50"><a href="#cb9-50" tabindex="-1"></a><span class="co">#&gt; [70] rappdirs_0.3.4      htmltools_0.5.8.1   brio_1.1.5         </span></span>
-<span id="cb9-51"><a href="#cb9-51" tabindex="-1"></a><span class="co">#&gt; [73] openssl_2.3.4       R6_2.6.1            httr2_1.2.2        </span></span>
-<span id="cb9-52"><a href="#cb9-52" tabindex="-1"></a><span class="co">#&gt; [76] textshaping_1.0.4   zigg_0.0.2          Rdpack_2.6.5       </span></span>
-<span id="cb9-53"><a href="#cb9-53" tabindex="-1"></a><span class="co">#&gt; [79] rprojroot_2.1.1     evaluate_1.0.5      extraDistr_1.10.0  </span></span>
-<span id="cb9-54"><a href="#cb9-54" tabindex="-1"></a><span class="co">#&gt; [82] rbibutils_2.4.1     R.methodsS3_1.8.2   Rfast_2.1.5.1      </span></span>
-<span id="cb9-55"><a href="#cb9-55" tabindex="-1"></a><span class="co">#&gt; [85] memoise_2.0.1       bslib_0.10.0        Rcpp_1.1.0         </span></span>
-<span id="cb9-56"><a href="#cb9-56" tabindex="-1"></a><span class="co">#&gt; [88] whisker_0.4.1       xfun_0.52           fs_1.6.6           </span></span>
-<span id="cb9-57"><a href="#cb9-57" tabindex="-1"></a><span class="co">#&gt; [91] usethis_3.2.1       pkgconfig_2.0.3</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt; R version 4.4.1 (2024-06-14 ucrt)</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; Platform: x86_64-w64-mingw32/x64</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; Running under: Windows 11 x64 (build 22631)</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; Matrix products: default</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt; locale:</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; [1] LC_COLLATE=English_United States.utf8  LC_CTYPE=English_United States.utf8   </span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; [3] LC_MONETARY=English_United States.utf8 LC_NUMERIC=C                          </span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt; [5] LC_TIME=English_United States.utf8    </span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt; time zone: America/Chicago</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt; tzcode source: internal</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt; attached base packages:</span></span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt; other attached packages:</span></span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a><span class="co">#&gt; [1] OnlineSurr_0.0.4</span></span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt;  [1] tidyselect_1.2.1    dplyr_1.1.4         farver_2.1.2        S7_0.2.0            fastmap_1.2.0      </span></span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt;  [6] latex2exp_0.9.6     xopen_1.0.1         promises_1.3.2      digest_0.6.37       mime_0.12          </span></span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt; [11] lifecycle_1.0.4     ellipsis_0.3.2      processx_3.8.5      magrittr_2.0.3      compiler_4.4.1     </span></span>
+<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt; [16] rlang_1.1.7         sass_0.4.9          tools_4.4.1         yaml_2.3.10         knitr_1.49         </span></span>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt; [21] prettyunits_1.2.0   askpass_1.2.1       labeling_0.4.3      htmlwidgets_1.6.4   pkgbuild_1.4.6     </span></span>
+<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="co">#&gt; [26] curl_6.2.0          xml2_1.3.6          RColorBrewer_1.1-3  pkgload_1.4.0       miniUI_0.1.1.1     </span></span>
+<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a><span class="co">#&gt; [31] withr_3.0.2         purrr_1.0.2         desc_1.4.3          grid_4.4.1          kDGLM_1.2.14       </span></span>
+<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a><span class="co">#&gt; [36] fansi_1.0.6         roxygen2_7.3.3      urlchecker_1.0.1    profvis_0.4.0       xtable_1.8-4       </span></span>
+<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a><span class="co">#&gt; [41] ggplot2_4.0.1       scales_1.4.0        cli_3.6.3           rmarkdown_2.29      ragg_1.5.2         </span></span>
+<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a><span class="co">#&gt; [46] generics_0.1.3      remotes_2.5.0       RcppParallel_5.1.10 rstudioapi_0.17.1   sessioninfo_1.2.2  </span></span>
+<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a><span class="co">#&gt; [51] cachem_1.1.0        stringr_1.5.1       parallel_4.4.1      vctrs_0.6.5         devtools_2.4.5     </span></span>
+<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a><span class="co">#&gt; [56] jsonlite_1.8.9      callr_3.7.6         rcmdcheck_1.4.0     systemfonts_1.2.3   testthat_3.2.3     </span></span>
+<span id="cb8-36"><a href="#cb8-36" tabindex="-1"></a><span class="co">#&gt; [61] fontawesome_0.5.3   tidyr_1.3.1         jquerylib_0.1.4     glue_1.8.0          pkgdown_2.2.0      </span></span>
+<span id="cb8-37"><a href="#cb8-37" tabindex="-1"></a><span class="co">#&gt; [66] ps_1.8.1            stringi_1.8.4       gtable_0.3.6        later_1.4.1         downlit_0.4.4      </span></span>
+<span id="cb8-38"><a href="#cb8-38" tabindex="-1"></a><span class="co">#&gt; [71] RcppZiggurat_0.1.6  tibble_3.2.1        pillar_1.10.1       brio_1.1.5          rappdirs_0.3.3     </span></span>
+<span id="cb8-39"><a href="#cb8-39" tabindex="-1"></a><span class="co">#&gt; [76] htmltools_0.5.8.1   openssl_2.3.1       R6_2.5.1            httr2_1.1.0         textshaping_1.0.0  </span></span>
+<span id="cb8-40"><a href="#cb8-40" tabindex="-1"></a><span class="co">#&gt; [81] Rdpack_2.6.2        rprojroot_2.0.4     evaluate_1.0.3      shiny_1.10.0        extraDistr_1.10.0  </span></span>
+<span id="cb8-41"><a href="#cb8-41" tabindex="-1"></a><span class="co">#&gt; [86] rbibutils_2.3       Rfast_2.1.4         memoise_2.0.1       httpuv_1.6.15       bslib_0.8.0        </span></span>
+<span id="cb8-42"><a href="#cb8-42" tabindex="-1"></a><span class="co">#&gt; [91] Rcpp_1.0.14         whisker_0.4.1       xfun_0.50           fs_1.6.5            usethis_3.1.0      </span></span>
+<span id="cb8-43"><a href="#cb8-43" tabindex="-1"></a><span class="co">#&gt; [96] pkgconfig_2.0.3</span></span></code></pre></div>
 <div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-santos2026causalframeworkevaluatingjointly" class="csl-entry">
 Santos Jr., S. V. dos, and Parast, L. (2026). <a href="https://arxiv.org/abs/2604.12882">A causal framework for

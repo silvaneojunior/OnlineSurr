@@ -10,7 +10,7 @@ and a time-homogeneity test of the LPTE.
 
 ``` r
 # S3 method for class 'fitted_onlinesurr'
-summary(object, t = object$T, cumulative = T, signif.level = 0.05, ...)
+summary(object, t = object$T, cumulative = TRUE, signif.level = 0.05, ...)
 ```
 
 ## Arguments
@@ -55,16 +55,50 @@ samples for marginal and surrogate-adjusted (conditional) models in
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
 fit <- fit.surr(y ~ 1,
-  id = id, surrogate = ~ s1 + s2, treat = trt,
-  data = dat, time = time, N.boots = 2000
+  id = id,
+  surrogate = ~s,
+  treat = trt,
+  data = sim_onlinesurr, # This dataset is included in the OnlineSurr package
+  time = time,
+  verbose = 0,
+  N.boots = 500 # Generally, this value would be too small.
+  # Remember to increase it for your dataset.
 )
 
 # Cumulative up to time 5
 summary(fit, t = 5, cumulative = TRUE, signif.level = 0.05)
+#> Fitted Online Surrogate
+#> 
+#> Cummulated effects at time 5:
+#>         Estimate Std. Error t value   Pr(>|t|)   
+#> Delta    6.65540  0.04904   135.72003 0.0000e+00 ***
+#> Delta.R  2.27557  0.35247     6.45608 1.0745e-10 ***
+#> CPTE     0.65809  0.05284       -         -       
+#> 
+#> Time homogeneity test: 
+#> 
+#> Test stat.   Crit. value   p-value     
+#>    1.11084       2.43794    0.61612    
+#> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#> 
 
 # Time-specific at time 5
 summary(fit, t = 5, cumulative = FALSE)
-} # }
+#> Fitted Online Surrogate
+#> 
+#> Local effects at time 5:
+#>         Estimate Std. Error t value  Pr(>|t|)   
+#> Delta    2.01395  0.02172   92.71419 0.0000e+00 ***
+#> Delta.R  0.62847  0.11065    5.67994 1.3474e-08 ***
+#> LPTE     0.68794  0.05494      -         -       
+#> 
+#> Time homogeneity test: 
+#> 
+#> Test stat.   Crit. value   p-value     
+#>    1.11084       2.43875    0.61710    
+#> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#> 
 ```
