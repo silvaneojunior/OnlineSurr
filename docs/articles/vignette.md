@@ -65,6 +65,7 @@ requires:
 - `time`: numeric time variable (unquoted).
 
 ``` r
+
 library(OnlineSurr)
 head(sim_onlinesurr)
 #>   id trt time          s         y
@@ -100,6 +101,7 @@ numeric variable and can be used to model smooth, potentially non-linear
 effects without having to specify the basis expansion manually.
 
 ``` r
+
 library(OnlineSurr)
 
 fit <- fit.surr(
@@ -146,6 +148,7 @@ The package provides an S3 summary method
 - `cumulative=FALSE` reports time-specific quantities at time `t` only.
 
 ``` r
+
 summary(fit, t = 6, cumulative = TRUE)
 #> Fitted Online Surrogate
 #> 
@@ -169,18 +172,21 @@ summary(fit, t = 6, cumulative = TRUE)
 [`plot.fitted_onlinesurr()`](https://silvaneojunior.github.io/OnlineSurr/reference/plot.fitted_onlinesurr.md).
 
 ``` r
+
 plot(fit, type = "LPTE") # Local PTE over time
 ```
 
 ![](vignette_files/figure-html/unnamed-chunk-4-1.png)
 
 ``` r
+
 plot(fit, type = "CPTE") # Cumulative PTE over time
 ```
 
 ![](vignette_files/figure-html/unnamed-chunk-4-2.png)
 
 ``` r
+
 plot(fit, type = "Delta") # Delta and Delta_R over time
 ```
 
@@ -200,6 +206,7 @@ provides a max-type test, using a Monte Carlo approximation of the null
 distribution.
 
 ``` r
+
 test <- time_homo_test(fit, signif.level = 0.05, N.boots = 50000)
 test
 #> $T
@@ -242,6 +249,7 @@ aspects of the package.
 ## Session info
 
 ``` r
+
 sessionInfo()
 #> R version 4.4.1 (2024-06-14 ucrt)
 #> Platform: x86_64-w64-mingw32/x64

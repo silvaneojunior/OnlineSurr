@@ -55,6 +55,7 @@ samples for marginal and surrogate-adjusted (conditional) models in
 ## Examples
 
 ``` r
+
 fit <- fit.surr(y ~ 1,
   id = id,
   surrogate = ~s,

@@ -65,7 +65,7 @@ formula.to.structure <- function(formula, data, label = "mu") {
   if (length(terms.mat) > 0 | intercept.add) {
     mat.formula <- update.formula(formula, as.formula(paste0("~", paste(c(ifelse(intercept.flag, 1, 0), terms.mat), collapse = "+"))))
 
-    X <- model.matrix(mat.formula, data = data)
+    X <- model.matrix(mat.formula, data = data, na.action = na.pass)
     if (!intercept.add & intercept.flag) {
       X <- X[, -1, drop = FALSE]
     }

@@ -95,15 +95,14 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
       !!name.G := factor(!!sym(name.G), levels = sort(unique(!!sym(name.G))))
     )
 
-  if (is.null(time)) {
+  name.T <- deparse(substitute(time))
+  if (name.T == "NULL") {
     data <- data %>%
       arrange(name.id) %>%
       group_by(!!sym(name.id)) %>%
       mutate(Time = seq_along(!!sym(name.id)))
     name.T <- "Time"
     warning("Time index was not specified. We assume that the data is equally spaced AND already ordered.")
-  } else {
-    name.T <- deparse(substitute(time))
   }
 
   counts <- data %>%
@@ -149,6 +148,7 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
     pivot_wider(names_from = name.id, values_from = name.Y))[, -1]
   treat.list <- (data %>% group_by(!!sym(name.id)) %>%
     summarize(treat = (!!sym(name.G))[1]))$treat
+  data[[name.Y]] <- if.na(data[[name.Y]], 0)
   control.name <- (unique(treat.list)[1])
   treat.name <- (unique(treat.list)[2])
   treat.list <- (treat.list == treat.name)

@@ -25,6 +25,7 @@ The package is not yet on CRAN. Install the development version from
 GitHub with:
 
 ``` r
+
 # install.packages("remotes")
 remotes::install_github("silvaneojunior/OnlineSurr")
 ```
@@ -47,6 +48,7 @@ The current source imports functionality from:
 ## Basic usage
 
 ``` r
+
 library(OnlineSurr)
 
 fit <- fit.surr(

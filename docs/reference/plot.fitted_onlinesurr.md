@@ -72,6 +72,7 @@ intervals computed from the bootstrap sample matrices stored in
 ## Examples
 
 ``` r
+
 fit <- fit.surr(y ~ 1,
   id = id,
   surrogate = ~s,

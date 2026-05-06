@@ -32,7 +32,34 @@ set.seed(13031998)
 # To get the exact same results as the paper, it is necessary to use the exact same seeds, which depend on the number of cores used.
 # For the paper, we used n.cores=20.
 seeds=round(runif(n.cores)*1000000)
-cases=paste0('Study 2 - Case ',2:5)
+cases='Study 2 - Case 2'
+clust=makeCluster(n.cores)
+clusterApply(clust,seeds,prepare_parallel,batch.size=3000/n.cores,file=file,cases=cases)
+stopCluster(clust)
+
+set.seed(10081994)
+# To get the exact same results as the paper, it is necessary to use the exact same seeds, which depend on the number of cores used.
+# For the paper, we used n.cores=20.
+seeds=round(runif(n.cores)*1000000)
+cases='Study 2 - Case 3'
+clust=makeCluster(n.cores)
+clusterApply(clust,seeds,prepare_parallel,batch.size=3000/n.cores,file=file,cases=cases)
+stopCluster(clust)
+
+set.seed(13072016)
+# To get the exact same results as the paper, it is necessary to use the exact same seeds, which depend on the number of cores used.
+# For the paper, we used n.cores=20.
+seeds=round(runif(n.cores)*1000000)
+cases='Study 2 - Case 4'
+clust=makeCluster(n.cores)
+clusterApply(clust,seeds,prepare_parallel,batch.size=3000/n.cores,file=file,cases=cases)
+stopCluster(clust)
+
+set.seed(28042000)
+# To get the exact same results as the paper, it is necessary to use the exact same seeds, which depend on the number of cores used.
+# For the paper, we used n.cores=20.
+seeds=round(runif(n.cores)*1000000)
+cases='Study 2 - Case 5'
 clust=makeCluster(n.cores)
 clusterApply(clust,seeds,prepare_parallel,batch.size=3000/n.cores,file=file,cases=cases)
 stopCluster(clust)

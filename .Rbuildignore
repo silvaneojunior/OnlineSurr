@@ -7,3 +7,5 @@
 ^_pkgdown.yml$
 ^hex_badge.png$
 ^CITATION.cff$
+^\.positai$
+^\.claude$

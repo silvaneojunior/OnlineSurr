@@ -150,6 +150,7 @@ Models (Springer Series in Statistics)*. Springer-Verlag. ISBN
 ## Examples
 
 ``` r
+
 fit <- fit.surr(y ~ 1,
   id = id,
   surrogate = ~s,

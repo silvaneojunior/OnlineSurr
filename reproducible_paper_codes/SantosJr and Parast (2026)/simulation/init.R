@@ -55,8 +55,8 @@ N.list=c(300,250,200,150,100,50) # Set of sample sizes to be tested
 total.effect=list('Study 1 - Case 1'=5,
               'Study 1 - Case 2'=5,
               'Study 1 - Case 3'=5,
-              'Study 2 - Case 2'=1,
-              'Study 2 - Case 3'=1,
+              'Study 2 - Case 2'=2,
+              'Study 2 - Case 3'=2,
               'Study 2 - Case 4'=1,
               'Study 2 - Case 5'=1)
 # Set of true PTEs to be tested
