@@ -73,14 +73,14 @@ summary(fit, t = 5, cumulative = TRUE, signif.level = 0.05)
 #> 
 #> Cummulated effects at time 5:
 #>         Estimate Std. Error t value   Pr(>|t|)   
-#> Delta    6.65540  0.04904   135.72003 0.0000e+00 ***
-#> Delta.R  2.27557  0.35247     6.45608 1.0745e-10 ***
-#> CPTE     0.65809  0.05284       -         -       
+#> Delta    6.65706  0.04906   135.70256 0.0000e+00 ***
+#> Delta.R  2.27495  0.34700     6.55610 5.5232e-11 ***
+#> CPTE     0.65827  0.05204       -         -       
 #> 
 #> Time homogeneity test: 
 #> 
 #> Test stat.   Crit. value   p-value     
-#>    1.11084       2.43794    0.61612    
+#>    1.14145       2.44355    0.59894    
 #> ---
 #> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 #> 
@@ -91,14 +91,14 @@ summary(fit, t = 5, cumulative = FALSE)
 #> 
 #> Local effects at time 5:
 #>         Estimate Std. Error t value  Pr(>|t|)   
-#> Delta    2.01395  0.02172   92.71419 0.0000e+00 ***
-#> Delta.R  0.62847  0.11065    5.67994 1.3474e-08 ***
-#> LPTE     0.68794  0.05494      -         -       
+#> Delta    2.01452  0.02173   92.71791 0.0000e+00 ***
+#> Delta.R  0.62921  0.10903    5.77078 7.8907e-09 ***
+#> LPTE     0.68766  0.05412      -         -       
 #> 
 #> Time homogeneity test: 
 #> 
 #> Test stat.   Crit. value   p-value     
-#>    1.11084       2.43875    0.61710    
+#>    1.14145       2.44569    0.59910    
 #> ---
 #> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 #> 

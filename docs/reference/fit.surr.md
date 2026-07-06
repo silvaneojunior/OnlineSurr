@@ -19,7 +19,8 @@ fit.surr(
   time = NULL,
   N.boots = 2000,
   verbose = 1,
-  D.local = 0.8
+  D.local = 0.8,
+  homoskedastic = TRUE
 )
 ```
 
@@ -83,6 +84,14 @@ fit.surr(
   it by 1), but values closer to 0 imply in a more flexible dynamic. See
   West and Harrison (1997) or the appendix in dos Santos Jr. and
   Parast (2026) for instructions on how to specify the discount factor.
+
+- homoskedastic:
+
+  boolean: If true, the covariance matrix of the temporal evolution is
+  forced to be the same between subjects. Otherwise, subject-level
+  temporal evolution is computed, which may introduce bias to the PTE
+  estimator unless the functional form of the model mean is correctly
+  specified.
 
 ## Value
 
@@ -166,14 +175,14 @@ summary(fit)
 #> 
 #> Cummulated effects at time 6:
 #>         Estimate Std. Error t value   Pr(>|t|)   
-#> Delta    8.99606  0.04861   185.06592 0.0000e+00 ***
-#> Delta.R  2.99490  0.47800     6.26547 3.7169e-10 ***
-#> CPTE     0.66709  0.05306       -         -       
+#> Delta    8.99834  0.04864   185.00240 0.0000e+00 ***
+#> Delta.R  2.99465  0.47189     6.34609 2.2085e-10 ***
+#> CPTE     0.66720  0.05239       -         -       
 #> 
 #> Time homogeneity test: 
 #> 
 #> Test stat.   Crit. value   p-value     
-#>    1.11091       2.43248    0.62236    
+#>    1.14115       2.43631    0.60536    
 #> ---
 #> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 #> 

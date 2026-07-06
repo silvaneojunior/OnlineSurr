@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">OnlineSurr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,7 +51,8 @@
 <span>  time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N.boots <span class="op">=</span> <span class="fl">2000</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  D.local <span class="op">=</span> <span class="fl">0.8</span></span>
+<span>  D.local <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<span>  homoskedastic <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -95,6 +96,10 @@
 <dd><p>Numeric, a number between 0 and 1 indicating the discount factor to be used for the random effect block. This factor controls how smooth the random effect evolve over time. A discount factor of 1 means that the random effects do not change over time, so that each individual has its own local level, but that level is the same for all times. A discount factor of 0 is not acceptable (the kDGLM package will replace it by 1), but values closer to 0 imply in a more flexible dynamic. See West and Harrison (1997)
  or the appendix in dos Santos Jr. and Parast (2026)
  for instructions on how to specify the discount factor.</p></dd>
+
+
+<dt id="arg-homoskedastic">homoskedastic<a class="anchor" aria-label="anchor" href="#arg-homoskedastic"></a></dt>
+<dd><p>boolean: If true, the covariance matrix of the temporal evolution is forced to be the same between subjects. Otherwise, subject-level temporal evolution is computed, which may introduce bias to the PTE estimator unless the functional form of the model mean is correctly specified.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -146,14 +151,14 @@ ISBN 0387947256.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Cummulated effects at time 6:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         Estimate Std. Error t value   Pr(&gt;|t|)   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Delta    8.99606  0.04861   185.06592 0.0000e+00 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Delta.R  2.99490  0.47800     6.26547 3.7169e-10 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> CPTE     0.66709  0.05306       -         -       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Delta    8.99834  0.04864   185.00240 0.0000e+00 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Delta.R  2.99465  0.47189     6.34609 2.2085e-10 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CPTE     0.66720  0.05239       -         -       </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Time homogeneity test: </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Test stat.   Crit. value   p-value     </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    1.11091       2.43248    0.62236    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    1.14115       2.43631    0.60536    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>

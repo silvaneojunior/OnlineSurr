@@ -13,7 +13,8 @@ fit.surr(
   time = NULL,
   N.boots = 2000,
   verbose = 1,
-  D.local = 0.8
+  D.local = 0.8,
+  homoskedastic = TRUE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ fit.surr(
 \item{verbose}{Logical scalar indicating whether to print progress information during model fitting. If \code{TRUE}, progress updates are shown; if \code{FALSE}, no progress output is produced.}
 
 \item{D.local}{Numeric, a number between 0 and 1 indicating the discount factor to be used for the random effect block. This factor controls how smooth the random effect evolve over time. A discount factor of 1 means that the random effects do not change over time, so that each individual has its own local level, but that level is the same for all times. A discount factor of 0 is not acceptable (the kDGLM package will replace it by 1), but values closer to 0 imply in a more flexible dynamic. See \insertCite{West-DLM;textual}{OnlineSurr} or the appendix in \insertCite{santos2026causalframeworkevaluatingjointly;textual}{OnlineSurr} for instructions on how to specify the discount factor.}
+
+\item{homoskedastic}{boolean: If true, the covariance matrix of the temporal evolution is forced to be the same between subjects. Otherwise, subject-level temporal evolution is computed, which may introduce bias to the PTE estimator unless the functional form of the model mean is correctly specified.}
 }
 \value{
 An object of class \code{"fitted_onlinesurr"}: a named list with elements \code{$Marginal} and \code{$Conditional}. Each of these contains:

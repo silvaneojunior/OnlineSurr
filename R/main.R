@@ -17,6 +17,7 @@
 #' @param N.boots Integer number of subject-level bootstrap replicates. Each replicate resamples subjects with replacement and recombines subject-specific sufficient quantities to form bootstrap draws of the fixed effects.
 #' @param verbose Logical scalar indicating whether to print progress information during model fitting. If \code{TRUE}, progress updates are shown; if \code{FALSE}, no progress output is produced.
 #' @param D.local Numeric, a number between 0 and 1 indicating the discount factor to be used for the random effect block. This factor controls how smooth the random effect evolve over time. A discount factor of 1 means that the random effects do not change over time, so that each individual has its own local level, but that level is the same for all times. A discount factor of 0 is not acceptable (the kDGLM package will replace it by 1), but values closer to 0 imply in a more flexible dynamic. See \insertCite{West-DLM;textual}{OnlineSurr} or the appendix in \insertCite{santos2026causalframeworkevaluatingjointly;textual}{OnlineSurr} for instructions on how to specify the discount factor.
+#' @param homoskedastic boolean: If true, the covariance matrix of the temporal evolution is forced to be the same between subjects. Otherwise, subject-level temporal evolution is computed, which may introduce bias to the PTE estimator unless the functional form of the model mean is correctly specified.
 #'
 #' @return An object of class \code{"fitted_onlinesurr"}: a named list with elements \code{$Marginal} and \code{$Conditional}. Each of these contains:
 #'   \itemize{
@@ -60,7 +61,7 @@
 #' @import rlang
 #' @importFrom stats update.formula model.matrix as.formula model.frame na.pass var terms
 #' @export
-fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.boots = 2000, verbose = 1, D.local = 0.8) {
+fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.boots = 2000, verbose = 1, D.local = 0.8, homoskedastic = TRUE) {
   family <- Normal
 
   Y <- model.frame(update.formula(formula, ~1), data = data, na.action = na.pass)
@@ -145,9 +146,9 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
 
 
   Y.mat <- (data %>% select(name.Y, name.id, name.T) %>%
-    pivot_wider(names_from = name.id, values_from = name.Y))[, -1]
+              pivot_wider(names_from = name.id, values_from = name.Y))[, -1]
   treat.list <- (data %>% group_by(!!sym(name.id)) %>%
-    summarize(treat = (!!sym(name.G))[1]))$treat
+                   summarize(treat = (!!sym(name.G))[1]))$treat
   data[[name.Y]] <- if.na(data[[name.Y]], 0)
   control.name <- (unique(treat.list)[1])
   treat.name <- (unique(treat.list)[2])
@@ -229,6 +230,14 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
     args$structure <- structure
     model <- do.call(fit_model, args)
     W.est <- model$W
+
+    if (homoskedastic) {
+      for(t in 1:T.len){
+        W.est[,,t] <- diag(mean(diag(W.est[,,t])),nrow=structure$n)
+      }
+    }
+    print(diag(W.est[,,2]))
+
     R1.est.control <- var(model$mt[(1:N)[!treat.list], T.len])
     R1.est.treat <- var(model$mt[(1:N)[treat.list], T.len])
 
@@ -252,6 +261,7 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
       idx <- -((1:N)[-i])
       structure.cur$D[, , ] <- 0
       structure.cur$H[, , ] <- W.est[idx, idx, ]
+      structure.cur$H[, , 1] <- 0
       structure.cur$R1[1, 1] <- if (treat.list[i]) {
         R1.est.treat
       } else {
@@ -342,7 +352,7 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
       data.control[[name.id]] <- factor(data.control[[name.id]], levels = unique(data.control[[name.id]]))
       pat.names.control <- levels(data.control[[name.id]])
       treat.list.control <- (data.control %>% group_by(!!sym(name.id)) %>%
-        summarize(treat = (!!sym(name.G))[1]))$treat
+                               summarize(treat = (!!sym(name.G))[1]))$treat
       treat.list.control <- (treat.list.control == treat.name)
 
       fixed.effects.control <- list()
@@ -399,7 +409,8 @@ fit.surr <- function(formula, id, surrogate, treat, data = NULL, time = NULL, N.
   models <- append(models, list(
     "T" = T.len,
     "N" = N,
-    "n.fixed" = n.ref
+    "n.fixed" = n.ref,
+    "homoskedastic" = homoskedastic
   ))
   class(models) <- "fitted_onlinesurr"
   return(models)
